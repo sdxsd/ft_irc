@@ -8,12 +8,12 @@
 
 class Server {
 	private:
-		const int			sock_fd;
+		int					_sock_fd;
 		const uint16_t		_port;
 		const std::string	_name;
 		std::vector<Channel> _channels;
 	public:
-		Server(int socket, uint16_t port, const std::string& name);
+		Server(uint16_t port, const std::string& name);
 };
 
 #endif // SERVER_HPP
