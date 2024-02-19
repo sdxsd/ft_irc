@@ -11,14 +11,13 @@
 
 class Channel {
 	private:
-		const std::string				_channelName;
-		std::string						_channelPassword;
-		std::map<unsigned int, Client>	_users;
-		std::vector<unsigned int>		_operators;
-		std::vector<std::string>		_messages;
-		std::map<char, bool>			_mode;
+		const std::string				channel_name;
+		std::string						channel_password;
+		std::map<unsigned int, Client>	users;
+		std::vector<unsigned int>		operators;
+		std::vector<std::string>		messages;
+		std::map<char, bool>			mode;
 	public:
-
 };
 
 #endif // CHANNEL_HPP

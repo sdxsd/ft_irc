@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-Server::Server(uint16_t port, const std::string &name): port(port), name(name)  {
+Server::Server(uint16_t port, const std::string &password): port(port), password(password)  {
 	sockaddr_in	socket_address; // sockaddr_in represents an Internet Protocol address.
 
 	memset(&socket_address, 0, sizeof(sockaddr_in)); // No random data.
@@ -32,6 +32,8 @@ int Server::accept_new_clients() {
 }
 
 void Server::run(void) {
+	unsigned int	client_count = 0;
+
 	if (listen(server_sock, 1024) == -1) { // TODO: Change 1024 to some concrete max client variable.
 		std::cerr << "Error setting socket to listen for connections." << std::endl;
 		close(server_sock);
@@ -39,10 +41,11 @@ void Server::run(void) {
 	}
 	std::cout << "Server listening on port: " << port << std::endl;
 	while (true) { // Main logic (for now)
-		int	client = accept_new_clients();
-		if (client != -1)
-			clients.push_back(client);
-
-
+		int	new_client = accept_new_clients();
+		if (new_client != -1) {
+			client_count++;
+			std::cout << "Client connected!" << std::endl;
+			clients.insert(std::make_pair(client_count, Client(new_client)));
+		}
 	}
 }

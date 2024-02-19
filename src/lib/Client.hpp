@@ -7,13 +7,13 @@
 
 class Client {
 	private:
-	  int client_sock;
-	  char recv_buffer[512];
-	  char send_buffer[512];
-	  const std::string username;
-	  const std::string nickname;
-	  const std::string hostname;
-	  const std::string realname;
+	  const int client_sock;
+	  std::string recv_buffer;
+	  std::string send_buffer;
+	  std::string username;
+	  std::string nickname;
+	  std::string hostname;
+	  std::string realname;
 	public:
 	  Client(int client_sock);
 };
