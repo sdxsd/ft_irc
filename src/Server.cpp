@@ -33,6 +33,7 @@ int Server::accept_new_clients() {
 
 void Server::run(void) {
 	unsigned int	client_count = 0;
+	const char buf[] = "Zoink!\n"; // TODO: TEMP
 
 	if (listen(server_sock, 1024) == -1) { // TODO: Change 1024 to some concrete max client variable.
 		std::cerr << "Error setting socket to listen for connections." << std::endl;
@@ -44,8 +45,11 @@ void Server::run(void) {
 		int	new_client = accept_new_clients();
 		if (new_client != -1) {
 			client_count++;
-			std::cout << "Client connected!" << std::endl;
-			clients.insert(std::make_pair(client_count, Client(new_client)));
+			std::cout << "Client connected!" << std::endl; // TODO: TEMP
+			clients.insert(std::make_pair(client_count, Client(new_client))); // The client count at time of joining will represent the client's ID.
+			for (const auto& [id, client] : clients) {
+				send(client.get_socket(), (void *)&buf, strlen(buf), 0);
+			}
 		}
 	}
 }
