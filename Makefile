@@ -5,7 +5,7 @@ CPPFILES = \
 			src/Client.cpp \
 			src/Server.cpp \
 			src/main.cpp
-OFILES = $(CPPFILES:.c=.o)
+OFILES = $(CPPFILES:.cpp=.o)
 
 all: $(NAME)
 
