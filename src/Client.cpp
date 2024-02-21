@@ -1,6 +1,6 @@
 #include "lib/Client.hpp"
 
-Client::Client(int client_sockfd): client_sock(client_sock) {
+Client::Client(int client_sockfd): client_sockfd(client_sockfd) {
 	;
 }
 
