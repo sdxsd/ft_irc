@@ -1,6 +1,8 @@
 #include "lib/Server.hpp"
+#include <cstdlib>
 #include <iostream>
 #include <cstring>
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -13,43 +15,42 @@ Server::Server(uint16_t port, const std::string &password): port(port), password
 	socket_address.sin_port = htons(port); // htons() converts port to network byte order.
 	socket_address.sin_addr.s_addr = INADDR_ANY; // Accept connections from any address.
 
-	server_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_sock == -1) {
+	server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (server_sockfd == -1) {
 		std::cerr << "Error initialising socket" << std::endl;
 		exit(1); // TODO: Eventually remove.
 	}
-	if (bind(server_sock, (sockaddr*)&socket_address, sizeof(socket_address)) == -1) {
+	if (bind(server_sockfd, (sockaddr*)&socket_address, sizeof(socket_address)) == -1) {
 		std::cerr << "Error during binding of socket" << std::endl;
-		close(server_sock);
+		close(server_sockfd);
 		exit(1); // TODO: Eventually remove.
 	}
 }
 
-int Server::accept_new_clients() {
+// New client accepted.
+void Server::accept_new_client() {
 	sockaddr_in	client;
+	int			sockfd;
 	socklen_t	client_address_length = sizeof(client);
-	return(accept(server_sock, (sockaddr*)&client, &client_address_length));
+	sockfd = accept(server_sockfd, (sockaddr*)&client, &client_address_length);
+	if (sockfd != -1) {
+		std::cout << "Client connected!" << std::endl; // TODO: TEMP
+		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
+		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them.
+	}
 }
 
 void Server::run(void) {
-	unsigned int	client_count = 0;
-	const char buf[] = "Zoink!\n"; // TODO: TEMP
-
-	if (listen(server_sock, 1024) == -1) { // TODO: Change 1024 to some concrete max client variable.
+	if (listen(server_sockfd, 1024) == -1) { // TODO: Change 1024 to some concrete max client variable.
 		std::cerr << "Error setting socket to listen for connections." << std::endl;
-		close(server_sock);
+		close(server_sockfd);
 		exit(1); // TODO: Eventually remove.
 	}
 	std::cout << "Server listening on port: " << port << std::endl;
 	while (true) { // Main logic (for now)
-		int	new_client = accept_new_clients();
-		if (new_client != -1) {
-			client_count++;
-			std::cout << "Client connected!" << std::endl; // TODO: TEMP
-			clients.insert(std::make_pair(client_count, Client(new_client))); // The client count at time of joining will represent the client's ID.
-			for (const auto& [id, client] : clients) {
-				send(client.get_socket(), (void *)&buf, strlen(buf), 0);
-			}
-		}
+		accept_new_client();
+		// for (const auto& [id, client] : clients) {
+		// 	send(client.get_socket(), (void *)&buf, strlen(buf), 0);
+		// }
 	}
 }
