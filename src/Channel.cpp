@@ -9,7 +9,7 @@ password(password), mode(mode) {
 			throw InvalidChannelName();
 }
 
-const std::map<int, Client>& Channel::clients_in_channel() const {
+std::map<int, Client>& Channel::clients_in_channel() {
 	return (users);
 }
 

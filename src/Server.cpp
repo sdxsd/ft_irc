@@ -28,28 +28,27 @@ Server::Server(uint16_t port, const std::string &password): port(port), password
 }
 
 void Server::accept_new_client() {
-	sockaddr_in	client;
+	sockaddr_in	client_addr;
 	int			sockfd;
-	socklen_t	client_address_length = sizeof(client);
+	socklen_t	client_address_length = sizeof(client_addr);
 
-	sockfd = accept(server_sockfd, (sockaddr*)&client, &client_address_length);
+	sockfd = accept(server_sockfd, (sockaddr*)&client_addr, &client_address_length);
 	if (sockfd != -1) {
 		std::cout << "Client connected!" << std::endl; // TODO: TEMP
 		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
 		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them.
+		clients.find(sockfd)->second.messages.push("001 Jonkadingo :Welcome to the server!\r\n");
 	}
 }
 
 void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
-	const Channel& channel = channels.find(channel_name)->second;
-	for (const auto& [fd, client] : channel.clients_in_channel())
-		send(fd, message.c_str(), message.size(), 0);
+	Channel& channel = channels.find(channel_name)->second;
+	for (auto& c : channel.clients_in_channel())
+		c.second.messages.push(message);
 }
 
 void Server::run(void) {
-	const char buf[] = "ZoepZoep\n";
 	char ibuf[1024];
-
 	if (listen(server_sockfd, 1024) == -1) { // TODO: Change 1024 to some concrete max client variable.
 		std::cerr << "Error setting socket to listen for connections." << std::endl;
 		close(server_sockfd);
@@ -57,19 +56,16 @@ void Server::run(void) {
 	}
 	std::cout << "Server listening on port: " << port << std::endl;
 	while (true) { // TODO: Main logic (for now)
-		if (poll(poll_sockfds.data(), poll_sockfds.size(), -1) != -1) {
+		if (poll(poll_sockfds.data(), poll_sockfds.size(), 0) != -1) {
 			for (const pollfd& pfd : poll_sockfds) {
 				if (pfd.fd == server_sockfd && pfd.revents & POLLIN)
 					accept_new_client();
 				else if (pfd.revents & POLLOUT) {
-					if (clients.find(pfd.fd)->second)
-					std::cout << "POLLOUT" << std::endl;
-					send(pfd.fd, (void *)&buf, strlen(buf), 0);
+					clients.find(pfd.fd)->second.send_message();
 				}
 				else if (pfd.revents & POLLIN) {
-					std::cout << "POLLIN" << std::endl;
 					recv(pfd.fd, (void *)&ibuf, 1024, 0);
-					std::cout << ibuf << std::endl;
+					std::cout << "Client: " << ibuf << std::endl;
 				}
 			}
 		}

@@ -8,15 +8,16 @@
 
 class Client {
 	private:
-		const int				client_sockfd;
-		std::string				recv_buffer;
-		std::string				send_buffer;
-		std::string				username;
-		std::string				nickname;
-		std::string				hostname;
-		std::string				realname;
-		std::stack<std::string> messages;
+		const int	client_sockfd;
+		std::string	recv_buffer;
+		std::string	send_buffer;
+		std::string	username;
+		std::string	nickname;
+		std::string	hostname;
+		std::string	realname;
+		bool		authenticated;
 	public:
+		std::stack<std::string> messages;
 		Client(int client_sockfd);
 		int		get_socket() const;
 		void	send_message();
