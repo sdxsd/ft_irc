@@ -40,10 +40,6 @@ void Server::accept_new_client() {
 	}
 }
 
-void Server::disconnect_client() {
-
-}
-
 void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
 	const Channel& channel = channels.find(channel_name)->second;
 	for (const auto& [fd, client] : channel.clients_in_channel())
@@ -61,11 +57,12 @@ void Server::run(void) {
 	}
 	std::cout << "Server listening on port: " << port << std::endl;
 	while (true) { // TODO: Main logic (for now)
-		if (poll(poll_sockfds.data(), poll_sockfds.size(), 1024) != -1) {
+		if (poll(poll_sockfds.data(), poll_sockfds.size(), -1) != -1) {
 			for (const pollfd& pfd : poll_sockfds) {
 				if (pfd.fd == server_sockfd && pfd.revents & POLLIN)
 					accept_new_client();
 				else if (pfd.revents & POLLOUT) {
+					if (clients.find(pfd.fd)->second)
 					std::cout << "POLLOUT" << std::endl;
 					send(pfd.fd, (void *)&buf, strlen(buf), 0);
 				}
