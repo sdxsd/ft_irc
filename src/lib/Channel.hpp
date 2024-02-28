@@ -11,13 +11,19 @@
 
 class Channel {
 	private:
-		const std::string				channel_name;
-		std::string						channel_password;
-		std::map<unsigned int, Client>	users;
-		std::vector<unsigned int>		operators;
-		std::vector<std::string>		messages;
-		std::map<char, bool>			mode;
+		const std::string			name;
+		std::string					password;
+		std::map<int, Client>		users;
+		std::vector<int>			operators;
+		std::vector<std::string>	messages;
+		std::map<char, bool>		mode;
+		class InvalidChannelName : public std::exception {
+			public:
+				const char *what();
+		};
 	public:
+		Channel(const std::string &name, const std::string& password, std::map<char, bool> mode);
+		const std::map<int, Client>& clients_in_channel() const;
 };
 
 #endif // CHANNEL_HPP

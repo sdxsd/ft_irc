@@ -3,6 +3,7 @@ CFLAGS = -g -Wall -Wextra -Werror -std=c++23
 NAME = ircserv
 CPPFILES = \
 			src/Client.cpp \
+			src/Channel.cpp \
 			src/Server.cpp \
 			src/main.cpp
 OFILES = $(CPPFILES:.cpp=.o)

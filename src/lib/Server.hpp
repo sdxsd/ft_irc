@@ -13,11 +13,12 @@ class Server {
 	private:
 		int								server_sockfd;
 		const uint16_t					port;
-		std::map<unsigned int, Client>	clients;
+		std::map<int, Client>	clients;
 		std::map<std::string, Channel>	channels;
 		std::vector<pollfd>				poll_sockfds;
 		const std::string				&password;
 		void	accept_new_client();
+		void	send_to_channel(const std::string& channel_name, const std::string &message);
 	public:
 		Server(uint16_t port, const std::string& password);
 		void	run();

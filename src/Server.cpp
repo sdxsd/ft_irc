@@ -40,6 +40,16 @@ void Server::accept_new_client() {
 	}
 }
 
+void Server::disconnect_client() {
+
+}
+
+void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
+	const Channel& channel = channels.find(channel_name)->second;
+	for (const auto& [fd, client] : channel.clients_in_channel())
+		send(fd, message.c_str(), message.size(), 0);
+}
+
 void Server::run(void) {
 	const char buf[] = "ZoepZoep\n";
 	char ibuf[1024];
@@ -66,8 +76,5 @@ void Server::run(void) {
 				}
 			}
 		}
-		// for (const auto& [id, client] : clients) {
-		// 	send(client.get_socket(), (void *)&buf, strlen(buf), 0);
-		// }
 	}
 }
