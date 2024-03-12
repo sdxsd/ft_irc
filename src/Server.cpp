@@ -42,13 +42,38 @@ void Server::accept_new_client() {
 }
 
 void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
-	Channel& channel = channels.find(channel_name)->second;
-	for (auto& c : channel.clients_in_channel())
-		c.second.messages.push(message);
+	Channel& channel = channels.find(channel_name)->second; // Get channel from channel name.
+	for (auto& c : channel.clients_in_channel()) // Loop through all clients in channel.
+		c.second.append_to_messages(message); // Append message to clients stack of message to be sent.
+}
+
+void Server::handle_client(Client& client) {
+	char		buf[BUFSIZE];
+	std::string	buf_string;
+	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE, 0);
+	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
+		std::cout << "Client disconnected." << std::endl;
+		clients.erase(client.get_socket());
+		for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
+			if (it->fd == client.get_socket()) {
+				poll_sockfds.erase(it);
+				break ;
+			}
+		}
+		// TODO: Go through each channel also removing the user.
+		return ;
+	}
+	buf_string = buf;
+	if (buf_string.find("\r\n") != std::string::npos) {
+		std::cout << buf_string << std::endl;
+	}
+	else {
+		;
+	}
 }
 
 void Server::run(void) {
-	if (listen(server_sockfd, 1024) == -1) { // TODO: Change 1024 to some concrete max client variable.
+	if (listen(server_sockfd, MAXCLIENT) == -1) {
 		std::cerr << "Error setting socket to listen for connections." << std::endl;
 		close(server_sockfd);
 		exit(1); // TODO: Eventually remove.
@@ -61,10 +86,8 @@ void Server::run(void) {
 				if (pfd.revents & POLLIN) {
 					if (pfd.fd == server_sockfd)
 						accept_new_client();
-					else {
-						recv(pfd.fd, &clients.find(pfd.fd)->second.recv_buffer[0], BUFSIZE, 0);
-						clients.find(pfd.fd)->second.recv_buffer->clear();
-					}
+					else
+						handle_client(clients.find(pfd.fd)->second);
 				}
 				else if (pfd.revents & POLLOUT) {
 					clients.find(pfd.fd)->second.send_message();

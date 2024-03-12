@@ -9,14 +9,24 @@ Client::~Client() {
 	;
 }
 
+const std::string& Client::get_recv_buffer() const {
+	return (recv_buffer);
+}
+
+void Client::append_to_recv_buffer(const std::string& buf) {
+	recv_buffer += buf;
+}
+
 void Client::send_message() {
 	if (!messages.empty()) {
 		const std::string& message = messages.top();
-		// std::cout << "Sending: " << message;
-		if (send(client_sockfd, message.c_str(), message.length(), 0) != -1) {
+		if (send(client_sockfd, message.c_str(), message.length(), 0) != -1)
 			messages.pop();
-		}
 	}
+}
+
+void Client::append_to_messages(const std::string& msg) {
+	messages.push(msg);
 }
 
 int Client::get_socket() const {

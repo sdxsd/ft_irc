@@ -3,7 +3,6 @@
 
 #include <stack>
 #include <string>
-#include <vector>
 
 #define NICKNAME_LENGTH_MAX 9
 #define BUFSIZE 512
