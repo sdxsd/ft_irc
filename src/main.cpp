@@ -1,6 +1,5 @@
 #include "lib/Server.hpp"
 #include <iostream>
-#include <cstring>
 
 /*
 0 ... 1023 	Well-Known Ports(0-1023)
