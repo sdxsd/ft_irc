@@ -24,7 +24,7 @@ Server::Server(uint16_t port, const std::string &password): port(port), password
 		close(server_sockfd);
 		exit(1); // TODO: Eventually remove.
 	}
-	poll_sockfds.push_back({server_sockfd, POLLIN | POLLOUT, 0});
+	poll_sockfds.push_back({server_sockfd, POLLIN, 0});
 }
 
 void Server::accept_new_client() {
@@ -37,7 +37,7 @@ void Server::accept_new_client() {
 		std::cout << "Client connected!" << std::endl; // TODO: TEMP
 		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
 		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them.
-		clients.find(sockfd)->second.messages.push("001 Jonkadingo :Welcome to the server!\r\n");
+		// clients.find(sockfd)->second.messages.push("001 keizerrijk :Welcome to the server!\r\n");
 	}
 }
 
@@ -48,7 +48,6 @@ void Server::send_to_channel(const std::string& channel_name, const std::string 
 }
 
 void Server::run(void) {
-	char ibuf[1024];
 	if (listen(server_sockfd, 1024) == -1) { // TODO: Change 1024 to some concrete max client variable.
 		std::cerr << "Error setting socket to listen for connections." << std::endl;
 		close(server_sockfd);
@@ -56,16 +55,19 @@ void Server::run(void) {
 	}
 	std::cout << "Server listening on port: " << port << std::endl;
 	while (true) { // TODO: Main logic (for now)
-		if (poll(poll_sockfds.data(), poll_sockfds.size(), 0) != -1) {
+		int	presult = poll(poll_sockfds.data(), poll_sockfds.size(), -1);
+		if (presult != -1 && presult >= 1) {
 			for (const pollfd& pfd : poll_sockfds) {
-				if (pfd.fd == server_sockfd && pfd.revents & POLLIN)
-					accept_new_client();
+				if (pfd.revents & POLLIN) {
+					if (pfd.fd == server_sockfd)
+						accept_new_client();
+					else {
+						recv(pfd.fd, &clients.find(pfd.fd)->second.recv_buffer[0], BUFSIZE, 0);
+						clients.find(pfd.fd)->second.recv_buffer->clear();
+					}
+				}
 				else if (pfd.revents & POLLOUT) {
 					clients.find(pfd.fd)->second.send_message();
-				}
-				else if (pfd.revents & POLLIN) {
-					recv(pfd.fd, (void *)&ibuf, 1024, 0);
-					std::cout << "Client: " << ibuf << std::endl;
 				}
 			}
 		}

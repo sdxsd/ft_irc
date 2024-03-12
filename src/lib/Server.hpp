@@ -7,8 +7,6 @@
 #include <poll.h>
 #include "Channel.hpp"
 
-#define MSG_BUFFER 512; // Maximum size of an IRC message.
-
 class Server {
 	private:
 		int								server_sockfd;
