@@ -37,7 +37,7 @@ void Server::accept_new_client() {
 		std::cout << "Client connected!" << std::endl; // TODO: TEMP
 		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
 		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them.
-		// clients.find(sockfd)->second.messages.push("001 keizerrijk :Welcome to the server!\r\n");
+		clients.find(sockfd)->second.append_to_messages("001 keizerrijk :Welcome to the server!\r\n");
 	}
 }
 
@@ -52,15 +52,7 @@ void Server::handle_client(Client& client) {
 	std::string	buf_string;
 	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE, 0);
 	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
-		std::cout << "Client disconnected." << std::endl;
-		clients.erase(client.get_socket());
-		for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
-			if (it->fd == client.get_socket()) {
-				poll_sockfds.erase(it);
-				break ;
-			}
-		}
-		// TODO: Go through each channel also removing the user.
+		disconnect_client(client);
 		return ;
 	}
 	buf_string = buf;
@@ -70,6 +62,19 @@ void Server::handle_client(Client& client) {
 	else {
 		;
 	}
+}
+
+void Server::disconnect_client(Client &client) {
+	std::cout << "Client disconnected." << std::endl;
+	clients.erase(client.get_socket());
+	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
+		if (it->fd == client.get_socket()) {
+			poll_sockfds.erase(it);
+			break ;
+		}
+	}
+	// TODO: Go through each channel also removing the user.
+	return ;
 }
 
 void Server::run(void) {
@@ -86,8 +91,9 @@ void Server::run(void) {
 				if (pfd.revents & POLLIN) {
 					if (pfd.fd == server_sockfd)
 						accept_new_client();
-					else
+					else {
 						handle_client(clients.find(pfd.fd)->second);
+					}
 				}
 				else if (pfd.revents & POLLOUT) {
 					clients.find(pfd.fd)->second.send_message();

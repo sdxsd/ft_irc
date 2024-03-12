@@ -20,6 +20,7 @@ class Server {
 		void	accept_new_client();
 		void	send_to_channel(const std::string& channel_name, const std::string &message);
 		void	handle_client(Client& client);
+		void	disconnect_client(Client &client);
 	public:
 		Server(uint16_t port, const std::string& password);
 		void	run();
