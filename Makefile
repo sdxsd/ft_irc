@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -Wall -Wextra -Werror -std=c++23
+CFLAGS = -g -Wall -Wextra -Werror -std=c++03
 NAME = ircserv
 CPPFILES = \
 			src/Client.cpp \
