@@ -38,7 +38,7 @@ void Server::accept_new_client() {
 		std::cout << "Client connected!" << std::endl; // TODO: TEMP
 		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
 		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them.
-		clients.find(sockfd)->second.append_to_messages("001 keizerrijk :Welcome to the server!\r\n");
+		clients.find(sockfd)->second.append_to_messages("001 <name> :Welcome to the server!\r\n");
 	}
 }
 
