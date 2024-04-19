@@ -1,8 +1,9 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include <stack>
+#include <stack>ter
 #include <string>
+//#include "Server.hpp"
 
 #define NICKNAME_LENGTH_MAX 9
 #define BUFSIZE 512
@@ -26,8 +27,17 @@ class Client {
 		const std::string&	get_recv_buffer() const;
 		void				append_to_recv_buffer(const std::string& buf);
 		void				send_message();
+		void				replyPing(Client &client);
 		void				append_to_messages(const std::string& msg);
 		int					get_socket() const;
+		void 				storeUserVals(std::vector<std::string> &in, Client &client);
+		void 				storeNick(std::string &in, Client &client);
+		void				storePWD(std::string &in, Client &client);
+		std::string			get_username() const;
+		std::string			get_nickname() const;
+		std::string			get_hostname() const;
+		std::string			get_realname() const;
+		const int			get_sockfd() const;
 };
 
 #endif // CLIENT_HPP

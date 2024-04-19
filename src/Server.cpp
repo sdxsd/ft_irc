@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <sstream> 
 
 Server::Server(uint16_t port, const std::string &password): port(port), password(password)  {
 	sockaddr_in	socket_address; // sockaddr_in represents an Internet Protocol address.
@@ -56,8 +57,9 @@ void Server::handle_client(Client& client) {
 		return ;
 	}
 	buf_string = buf;
+	std::cout << "hostname: " << client.get_hostname() << std::endl;
 	if (buf_string.find("\r\n") != std::string::npos) {
-		std::cout << buf_string << std::endl;
+		getCMD(buf_string, &client);
 	}
 	else {
 		;
@@ -73,8 +75,79 @@ void Server::disconnect_client(Client &client) {
 			break ;
 		}
 	}
+	
 	// TODO: Go through each channel also removing the user.
 	return ;
+}
+
+// Client *Server::getUser(int FD)
+// { 
+// 	for (auto user : this->clients){
+// 		if ( )// how dos this work with map
+// 		return (user); 
+// 	}
+// 	return nullptr;
+// }
+
+
+
+void Server::getCMD(std::string cmd_buf, Client *sender)
+{
+	std::vector<std::string> splitArgs; 
+	std::stringstream ss(cmd_buf);
+	std::string word;
+	while (ss >> word)
+		splitArgs.push_back(word);
+	size_t vecSize = splitArgs.size();
+	if (sender == nullptr)
+		throw std::runtime_error("invalid user");
+	if (vecSize < 1)
+		return ;
+	else if (!splitArgs[0].compare("CAP")){
+		send(sender->get_sockfd(), "421 CAP :No Cap\r\n", 17, 0);
+	}
+	// /else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
+		// validate password
+	else if (!splitArgs[0].compare("NICK"))
+		sender->storeNick(splitArgs[1], *sender);
+	else if (!splitArgs[0].compare("USER"))
+		// TODO: Check for valid user arguments and completenes
+		sender->storeUserVals(splitArgs, *sender);
+	else if ((vecSize > 1) && (!splitArgs[0].compare("netcatter")))
+		std::cout << "netcatter command" << std::endl;
+		//netcatter reply
+	else if (!splitArgs[0].compare("TOPIC"))
+		std::cout << "TOPIC command" << std::endl;
+		//topic reply
+	else if (!splitArgs[0].compare("PING")){
+		sender->replyPing(*sender);
+	}
+	else if (!splitArgs[0].compare("PART"))
+		std::cout << "PART command" << std::endl;
+		//PART reply
+	else if (!splitArgs[0].compare("QUIT"))
+		std::cout << "QUIT command" << std::endl;
+		//QUIT reply
+	else if (vecSize < 2)
+		return ;
+	else if (!splitArgs[0].compare("JOIN"))
+		std::cout << "JOIN command" << std::endl;
+		//JOIN reply
+	else if (!splitArgs[0].compare("PRIVMSG"))
+		std::cout << "PRIVMSG command" << std::endl;
+		//PRIVMSG reply
+	else if (!splitArgs[0].compare("NOTICE"))
+		std::cout << "NOTICE command" << std::endl;
+		//NOTICE reply
+	else if (!splitArgs[0].compare("INVITE"))
+		std::cout << "INVITE command" << std::endl;
+		//INVITE reply
+	else if (!splitArgs[0].compare("KICK"))
+		std::cout << "KICK command" << std::endl;
+		//KICK reply
+	else if (!splitArgs[0].compare("MODE"))
+		std::cout << "MODE command" << std::endl;
+		//MODE reply	
 }
 
 void Server::run(void) {

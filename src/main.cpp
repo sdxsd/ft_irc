@@ -13,7 +13,7 @@
 8080 	Alternate HTTP (commonly used for web servers)
 8443 	HTTPS Alternate (often used for secure web traffic)
 9090 	Alternate Web Server (often used for web proxy servers)
-*/ 
+*/
 
 std::string get_string(char *in){
 	int i = 0; 
@@ -24,14 +24,15 @@ std::string get_string(char *in){
 
 int	check_input(int count, char *prog ,char *port, char *pwd){
 	int ok = 1;
+	std::string response = "";
 	if (count != 3){
 		std::cerr << "Usage: " << prog << " <PORT> <PASSWORD>" << std::endl;
 		return (0);
 	}
-	const uint16_t port_i = std::stoi(port);
+	uint16_t port_i = std::stoi(port);
 	std::string pwd_str = get_string(pwd);
-	if (port_i > 10000){
-		std::cerr << "port is too long" << std::endl;
+	if ((port_i > 0 && port_i <= 1023) || port_i > 10000){
+		std::cerr << "This port is not allowed, please try again"  << std::endl;
 		ok = 0;
 	}
 	if (pwd_str.length() > 500){
