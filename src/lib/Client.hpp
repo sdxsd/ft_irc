@@ -1,7 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include <stack>ter
+#include <stack>
 #include <string>
 //#include "Server.hpp"
 
