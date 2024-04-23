@@ -33,11 +33,10 @@ class Client {
 		void 				storeUserVals(std::vector<std::string> &in, Client &client);
 		void 				storeNick(std::string &in, Client &client);
 		void				storePWD(std::string &in, Client &client);
-		std::string			get_username() const;
-		std::string			get_nickname() const;
-		std::string			get_hostname() const;
-		std::string			get_realname() const;
-		const int			get_sockfd() const;
+		const std::string&	get_username() const;
+		const std::string&	get_nickname() const;
+		const std::string&	get_hostname() const;
+		const std::string&	get_realname() const;
 };
 
 #endif // CLIENT_HPP

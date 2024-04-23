@@ -21,6 +21,8 @@ class Server {
 		void	send_to_channel(const std::string& channel_name, const std::string &message);
 		void	handle_client(Client& client);
 		void	disconnect_client(Client &client);
+		Client	&get_user(int fd);
+		void	getCMD(std::string cmd_buf, Client *sender);
 	public:
 		Server(uint16_t port, const std::string& password);
 		void	run();

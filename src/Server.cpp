@@ -58,7 +58,7 @@ void Server::handle_client(Client& client) {
 	}
 	buf_string = buf;
 	std::cout << "hostname: " << client.get_hostname() << std::endl;
-	if (buf_string.find("\r\n") != std::string::npos) {
+	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
 		getCMD(buf_string, &client);
 	}
 	else {
@@ -80,16 +80,11 @@ void Server::disconnect_client(Client &client) {
 	return ;
 }
 
-// Client *Server::getUser(int FD)
-// { 
-// 	for (auto user : this->clients){
-// 		if ( )// how dos this work with map
-// 		return (user); 
-// 	}
-// 	return nullptr;
-// }
-
-
+// If using this function, check that the return value does not match clients.end()
+Client& Server::get_user(int fd)
+{
+	return (clients.find(fd)->second);
+}
 
 void Server::getCMD(std::string cmd_buf, Client *sender)
 {
@@ -104,7 +99,7 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 	if (vecSize < 1)
 		return ;
 	else if (!splitArgs[0].compare("CAP")){
-		send(sender->get_sockfd(), "421 CAP :No Cap\r\n", 17, 0);
+		send(sender->get_socket(), "421 CAP :No Cap\r\n", 17, 0);
 	}
 	// /else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
 		// validate password
@@ -164,9 +159,8 @@ void Server::run(void) {
 				if (pfd.revents & POLLIN) {
 					if (pfd.fd == server_sockfd)
 						accept_new_client();
-					else {
+					else
 						handle_client(clients.find(pfd.fd)->second);
-					}
 				}
 				else if (pfd.revents & POLLOUT) {
 					clients.find(pfd.fd)->second.send_message();

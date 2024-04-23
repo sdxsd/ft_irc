@@ -23,7 +23,9 @@ class Channel {
 		};
 	public:
 		Channel(const std::string &name, const std::string& password, std::map<char, bool> mode);
-		std::map<int, Client>& clients_in_channel();
+		std::map<int, Client>&	clients_in_channel();
+		void					add_client_to_channel(int fd, const Client& client);
+		void					remove_client_from_channel_by_fd(int fd);
 };
 
 #endif // CHANNEL_HPP

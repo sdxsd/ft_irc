@@ -32,3 +32,19 @@ void Client::append_to_messages(const std::string& msg) {
 int Client::get_socket() const {
 	return (client_sockfd);
 }
+
+const std::string& Client::get_username() const {
+	return (username);
+}
+
+const std::string& Client::get_nickname() const {
+	return (nickname);
+}
+
+const std::string& Client::get_hostname() const {
+	return (hostname);
+}
+
+const std::string& Client::get_realname() const {
+	return (realname);
+}

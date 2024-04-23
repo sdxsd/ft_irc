@@ -16,3 +16,12 @@ std::map<int, Client>& Channel::clients_in_channel() {
 const char *Channel::InvalidChannelName::what() {
 	return ("Invalid channel name.");
 }
+
+void Channel::add_client_to_channel(int fd, const Client& client) {
+	if (users.find(fd) == users.end())
+		users.insert(std::make_pair(fd, client));
+}
+
+void Channel::remove_client_from_channel_by_fd(int fd) {
+	users.erase(fd);
+}
