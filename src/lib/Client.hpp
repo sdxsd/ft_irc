@@ -3,7 +3,7 @@
 
 #include <stack>
 #include <string>
-//#include "Server.hpp"
+#include <vector>
 
 #define NICKNAME_LENGTH_MAX 9
 #define BUFSIZE 512
@@ -16,7 +16,7 @@ class Client {
 		std::string				hostname;
 		std::string				realname;
 		std::stack<std::string>	messages; // Messages waiting to be sent.
-		std::string				recv_buffer; // Appended to until /r/n is encountered.
+		std::string				recv_buffer; // Appended to until /n is encountered.
 		std::string				send_buffer;
 		bool					authenticated;
 	public:

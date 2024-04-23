@@ -22,7 +22,7 @@ std::string get_string(char *in){
 	return(std::string(in, i));
 }
 
-int	check_input(int count, char *prog ,char *port, char *pwd){
+int	check_input(int count, char *prog, char *port, char *pwd){
 	int ok = 1;
 	std::string response = "";
 	if (count != 3){
