@@ -5,7 +5,8 @@ CPPFILES = \
 			src/Client.cpp \
 			src/Channel.cpp \
 			src/Server.cpp \
-			src/main.cpp
+			src/main.cpp \
+			
 OFILES = $(CPPFILES:.cpp=.o)
 
 all: $(NAME)

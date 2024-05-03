@@ -1,4 +1,5 @@
 #include "lib/Channel.hpp"
+// #include "lib/Server.hpp"
 
 Channel::Channel(const std::string &name, const std::string& password, std::map<char, bool> mode):
 password(password), mode(mode) {

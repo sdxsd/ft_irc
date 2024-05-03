@@ -9,6 +9,8 @@
 #define CHANNEL_NAME_LENGTH_MAX	200;
 #define MESSAGE_LENGTH_MAX 		512;
 
+class Client;
+
 class Channel {
 	private:
 		const std::string			name;
