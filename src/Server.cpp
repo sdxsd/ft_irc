@@ -60,19 +60,24 @@ void Server::pop_cmd(std::string &buf_string)
 }
 
 void Server::handle_client(Client& client) {
-	static char		buf[BUFSIZE];
-	std::string	buf_string;
+	char		buf[BUFSIZE];
+	static std::string	buf_string;
 	std::string command;
+	int end;
 	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE, 0);
 	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
 		disconnect_client(client);
 		return ;
 	}
-	buf_string = buf;
-	std::cout << "hostname: " << client.get_hostname() << std::endl;
-	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
-		command = buf_string.substr(0, buf_string.find("\n"));
+	buf_string += buf;
+	std::cout << "buf string: " << buf_string << std::endl;
+	//std::cout << "hostname: " << client.get_hostname() << std::endl;
+	if (buf_string.find("\r\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
+		end = buf_string.find("\r\n") + 2;
+		command = buf_string.substr(0, end);
+		std::cout << "command: " << command << std::endl;
 		getCMD(command, &client);
+		buf_string = buf_string.substr(end, buf_string.size() - end);
 	}
 	else {
 		;

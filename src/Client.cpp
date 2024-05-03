@@ -55,10 +55,6 @@ void Client::storeNick(std::vector<std::string> &in, Client &client)
 		client.nickname = in[in.size() - 1];
 	in.pop_back();
 	std::reverse(in.begin(), in.end());	
-	//std::cout << "quitting after Nick" << std::endl;
-	//exit (0);
-	// if (!in.empty())
-	// 	client.nickname = in;
 }
 
 void Client::storeUserVals(std::vector<std::string> &in, Client &client){
