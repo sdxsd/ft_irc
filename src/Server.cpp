@@ -60,8 +60,9 @@ void Server::pop_cmd(std::string &buf_string)
 }
 
 void Server::handle_client(Client& client) {
-	char		buf[BUFSIZE];
+	static char		buf[BUFSIZE];
 	std::string	buf_string;
+	std::string command;
 	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE, 0);
 	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
 		disconnect_client(client);
@@ -70,7 +71,8 @@ void Server::handle_client(Client& client) {
 	buf_string = buf;
 	std::cout << "hostname: " << client.get_hostname() << std::endl;
 	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
-		getCMD(buf_string, &client);
+		command = buf_string.substr(0, buf_string.find("\n"));
+		getCMD(command, &client);
 	}
 	else {
 		;
@@ -98,7 +100,7 @@ Client& Server::get_user(int fd)
 
 void Server::getCMD(std::string cmd_buf, Client *sender)
 {
-	static std::vector<std::string> splitArgs;
+	std::vector<std::string> splitArgs;
 	std::stringstream ss(cmd_buf);
 	std::string word;
 	while (ss >> word)
@@ -130,7 +132,7 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 	// /else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
 		// validate password
 	else if (!splitArgs[0].compare("NICK"))
-		sender->storeNick(splitArgs[1], *sender);
+		sender->storeNick(splitArgs, *sender);
 	else if (!splitArgs[0].compare("USER")){
 		// TODO: Check for valid user arguments and completenes
 		std::cout << "USER function called:" << std::endl;

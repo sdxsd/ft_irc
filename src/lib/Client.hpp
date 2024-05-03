@@ -3,7 +3,7 @@
 
 #include <stack>
 #include <string>
-//#include "Server.hpp"
+#include "Server.hpp"
 
 #define NICKNAME_LENGTH_MAX 9
 #define BUFSIZE 512
