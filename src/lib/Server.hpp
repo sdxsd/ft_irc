@@ -15,13 +15,13 @@
 class Client;
 class Channel;
 
-class Server{
+class Server {
 	private:
 		int								server_sockfd;
 		const uint16_t					port;
 		std::map<int, Client>			clients;
 		std::map<std::string, Channel>	channels;
-		std::vector<pollfd>				poll_sockfds;		
+		std::vector<pollfd>				poll_sockfds;
 		const std::string				&password;
 		void	accept_new_client();
 		void	send_to_channel(const std::string& channel_name, const std::string &message);
@@ -30,6 +30,7 @@ class Server{
 		void 	getCMD(std::string cmd_buf, Client *sender);
 		void 	pop_cmd(std::string &buf_string);
 		Client *getUser(int FD);
+		Client& get_user(int fd);
 
 	public:
 		Server(uint16_t port, const std::string& password);

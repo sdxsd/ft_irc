@@ -68,13 +68,13 @@ void Server::handle_client(Client& client) {
 		return ;
 	}
 	buf_string = buf;
-	//std::cout << "hostname: " << client.get_hostname() << std::endl;
-	while (buf_string.find("\r\n") != std::string::npos) {
+	std::cout << "hostname: " << client.get_hostname() << std::endl;
+	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
 		getCMD(buf_string, &client);
-		pop_cmd(buf_string);
 	}
-	// if (!buf_string.empty())
-	// 	std::cout << "remnant: " << buf_string << std::endl;
+	else {
+		;
+	}
 }
 
 void Server::disconnect_client(Client &client) {
@@ -90,14 +90,11 @@ void Server::disconnect_client(Client &client) {
 	return ;
 }
 
-// Client *Server::getUser(int FD)
-// { 
-// 	for (auto user : this->clients){
-// 		if ( )// how dos this work with map
-// 		return (user); 
-// 	}
-// 	return nullptr;
-// }
+// If using this function, check that the return value does not match clients.end()
+Client& Server::get_user(int fd)
+{
+	return (clients.find(fd)->second);
+}
 
 void Server::getCMD(std::string cmd_buf, Client *sender)
 {
@@ -128,15 +125,23 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 	if (!splitArgs[0].compare("NICK"))
 		sender->storeNick(splitArgs, *sender);
 	if (!splitArgs[0].compare("USER")){
+		send(sender->get_socket(), "421 CAP :No Cap\r\n", 17, 0);
+	}
+	// /else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
+		// validate password
+	else if (!splitArgs[0].compare("NICK"))
+		sender->storeNick(splitArgs[1], *sender);
+	else if (!splitArgs[0].compare("USER")){
 		// TODO: Check for valid user arguments and completenes
 		std::cout << "USER function called:" << std::endl;
 		if (!splitArgs[0].empty()){
 			std::cout << "splitargs[0]" << splitArgs[0] << std::endl;
 			sender->storeUserVals(splitArgs, *sender);
 		}
-		else
+		else{
 			std::cout << "splitargs[0] empty" << std::endl;
 		}
+	}
 	else if ((vecSize > 1) && (!splitArgs[0].compare("netcatter")))
 		std::cout << "netcatter command" << std::endl;
 		//netcatter reply
@@ -188,9 +193,8 @@ void Server::run(void) {
 				if (pfd.revents & POLLIN) {
 					if (pfd.fd == server_sockfd)
 						accept_new_client();
-					else {
+					else
 						handle_client(clients.find(pfd.fd)->second);
-					}
 				}
 				else if (pfd.revents & POLLOUT) {
 					clients.find(pfd.fd)->second.send_message();

@@ -1,14 +1,9 @@
 #include "lib/Client.hpp"
 #include <sys/socket.h>
-#include <iostream>
-#include <string>
-#include <vector>
+#include <vector> 
 #include <algorithm>
-
-
-
-// Client::Client():client_sockfd(0){
-// }
+#include <string>
+#include <iostream>
 
 Client::Client(int client_sockfd): client_sockfd(client_sockfd) {
 	;
@@ -113,30 +108,46 @@ int Client::get_socket() const {
 	return (client_sockfd);
 }
 
-std::string	Client::get_username() const{
-	if (!this->username.empty())
-		return (username);
-	return ("none");
-}
+// std::string	Client::get_username() const{
+// 	if (!this->username.empty())
+// 		return (username);
+// 	return ("none");
+// }
 
-std::string	Client::get_nickname() const{
-	if (!this->nickname.empty())
-		return (nickname);
-	return ("none");
-}
+// std::string	Client::get_nickname() const{
+// 	if (!this->nickname.empty())
+// 		return (nickname);
+// 	return ("none");
+// }
 
-std::string Client::get_hostname() const{
-	if (!this->hostname.empty())
-		return (hostname);
-	return ("none");
-}
+// std::string Client::get_hostname() const{
+// 	if (!this->hostname.empty())
+// 		return (hostname);
+// 	return ("none");
+// }
 
-std::string	Client::get_realname() const{
-	if (!this->realname.empty())
-		return (realname);
-	return ("none");
-}
+// std::string	Client::get_realname() const{
+// 	if (!this->realname.empty())
+// 		return (realname);
+// 	return ("none");
+// }
 
 const int	Client::get_sockfd() const{
 	return (client_sockfd);
+}
+
+const std::string& Client::get_username() const {
+	return (username);
+}
+
+const std::string& Client::get_nickname() const {
+	return (nickname);
+}
+
+const std::string& Client::get_hostname() const {
+	return (hostname);
+}
+
+const std::string& Client::get_realname() const {
+	return (realname);
 }

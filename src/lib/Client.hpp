@@ -3,9 +3,7 @@
 
 #include <stack>
 #include <string>
-#include <vector>
-#include "Server.hpp"
-#include "Client.hpp"
+//#include "Server.hpp"
 
 #define NICKNAME_LENGTH_MAX 9
 #define BUFSIZE 512
@@ -18,7 +16,7 @@ class Client {
 		std::string				hostname;
 		std::string				realname;
 		std::stack<std::string>	messages; // Messages waiting to be sent.
-		std::string				recv_buffer; // Appended to until /r/n is encountered.
+		std::string				recv_buffer; // Appended to until /n is encountered.
 		std::string				send_buffer;
 		bool					authenticated;
 	public:
@@ -33,14 +31,14 @@ class Client {
 		void				replyPing(Client &client);
 		void				append_to_messages(const std::string& msg);
 		int					get_socket() const;
+		const int			get_sockfd() const;
 		void 				storeUserVals(std::vector<std::string> &in, Client &client);
 		void 				storeNick(std::vector<std::string> &in, Client &client);
 		void				storePWD(std::string &in, Client &client);
-		std::string			get_username() const;
-		std::string			get_nickname() const;
-		std::string			get_hostname() const;
-		std::string			get_realname() const;
-		const int			get_sockfd() const;
+		const std::string&	get_username() const;
+		const std::string&	get_nickname() const;
+		const std::string&	get_hostname() const;
+		const std::string&	get_realname() const;
 };
 
 #endif // CLIENT_HPP
