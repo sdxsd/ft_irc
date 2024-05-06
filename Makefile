@@ -1,12 +1,12 @@
-CC = g++
-CFLAGS = -g -Wall -Wextra -Werror -std=c++03
+CC = c++
+CFLAGS = -Wall -Wextra -Werror -std=c++23 -g
 NAME = ircserv
 CPPFILES = \
 			src/Client.cpp \
 			src/Channel.cpp \
 			src/Server.cpp \
-			src/main.cpp \
-			
+			src/main.cpp
+
 OFILES = $(CPPFILES:.cpp=.o)
 
 all: $(NAME)
@@ -14,7 +14,7 @@ all: $(NAME)
 $(NAME): $(OFILES)
 	$(CC) $(CFLAGS) $(OFILES) $(LIB) -o $(NAME)
 
-%.o: %.c
+%.o: %.cpp
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo COMPILED: $<
 

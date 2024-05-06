@@ -3,7 +3,7 @@
 
 #include <stack>
 #include <string>
-#include "Server.hpp"
+#include <vector>
 
 #define NICKNAME_LENGTH_MAX 9
 #define BUFSIZE 512
@@ -31,7 +31,6 @@ class Client {
 		void				replyPing(Client &client);
 		void				append_to_messages(const std::string& msg);
 		int					get_socket() const;
-		const int			get_sockfd() const;
 		void 				storeUserVals(std::vector<std::string> &in, Client &client);
 		void 				storeNick(std::vector<std::string> &in, Client &client);
 		void				storePWD(std::string &in, Client &client);

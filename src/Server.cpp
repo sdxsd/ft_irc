@@ -120,7 +120,7 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 	if (vecSize < 1)
 		return ;
 	else if (!splitArgs[0].compare("CAP")){
-		send(sender->get_sockfd(), "421 CAP :No Cap\r\n", 17, 0);
+		send(sender->get_socket(), "421 CAP :No Cap\r\n", 17, 0);
 		std::reverse(splitArgs.begin(), splitArgs.end());
 		splitArgs.pop_back();
 		splitArgs.pop_back();
@@ -183,7 +183,65 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 		//KICK reply
 	else if (!splitArgs[0].compare("MODE"))
 		std::cout << "MODE command" << std::endl;
-		//MODE reply	
+		//MODE reply
+}
+
+void Server::accept_new_client() {
+	sockaddr_in	client_addr;
+	int			sockfd;
+	socklen_t	client_address_length = sizeof(client_addr);
+
+	sockfd = accept(server_sockfd, (sockaddr*)&client_addr, &client_address_length);
+	if (sockfd != -1) {
+		std::cout << "Client connected!" << std::endl; // TODO: TEMP
+		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
+		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them.
+		clients.find(sockfd)->second.append_to_messages("001 <name> :Welcome to the server!\r\n");
+	}
+}
+
+void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
+	Channel& channel = channels.find(channel_name)->second; // Get channel from channel name.
+	for (auto c : channel.clients_in_channel()) // Loop through all clients in channel.
+		c.second.append_to_messages(message); // Append message to clients stack of message to be sent.
+}
+
+void Server::handle_client(Client& client) {
+	char		buf[BUFSIZE];
+	std::string	buf_string;
+	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE, 0);
+	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
+		disconnect_client(client);
+		return ;
+	}
+	buf_string = buf;
+	std::cout << "hostname: " << client.get_hostname() << std::endl;
+	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
+		getCMD(buf_string, &client);
+	}
+	else {
+		;
+	}
+}
+
+void Server::disconnect_client(Client &client) {
+	std::cout << "Client disconnected." << std::endl;
+	clients.erase(client.get_socket());
+	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
+		if (it->fd == client.get_socket()) {
+			poll_sockfds.erase(it);
+			break ;
+		}
+	}
+	
+	// TODO: Go through each channel also removing the user.
+	return ;
+}
+
+// If using this function, check that the return value does not match clients.end()
+Client& Server::get_user(int fd)
+{
+	return (clients.find(fd)->second);
 }
 
 void Server::run(void) {
