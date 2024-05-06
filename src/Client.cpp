@@ -128,10 +128,6 @@ int Client::get_socket() const {
 // 	return ("none");
 // }
 
-const int	Client::get_sockfd() const{
-	return (client_sockfd);
-}
-
 const std::string& Client::get_username() const {
 	return (username);
 }

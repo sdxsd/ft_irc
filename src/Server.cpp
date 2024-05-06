@@ -46,7 +46,7 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 	if (vecSize < 1)
 		return ;
 	else if (!splitArgs[0].compare("CAP")){
-		send(sender->get_sockfd(), "421 CAP :No Cap\r\n", 17, 0);
+		send(sender->get_socket(), "421 CAP :No Cap\r\n", 17, 0);
 		std::reverse(splitArgs.begin(), splitArgs.end());
 		splitArgs.pop_back();
 		splitArgs.pop_back();
