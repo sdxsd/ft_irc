@@ -5,9 +5,15 @@
 #include <string>
 #include <vector>
 #include <poll.h>
+#include <map>
+//#include "Replies.hpp"
+#include "Client.hpp"
 #include "Channel.hpp"
 
 # define MAXCLIENT 1024
+
+class Client;
+class Channel;
 
 class Server {
 	private:
@@ -22,7 +28,10 @@ class Server {
 		void	send_to_channel(const std::string& channel_name, const std::string &message);
 		void	handle_client(Client& client);
 		void	disconnect_client(Client &client);
-		Client	&get_user(int fd);
+		void 	pop_cmd(std::string &buf_string);
+		Client *getUser(int FD);
+		Client& get_user(int fd);
+
 	public:
 		Server(uint16_t port, const std::string& password);
 		void	run();

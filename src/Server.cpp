@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <sstream> 
+#include <algorithm>
 
 Server::Server(uint16_t port, const std::string &password): port(port), password(password)  {
 	sockaddr_in	socket_address; // sockaddr_in represents an Internet Protocol address.
@@ -36,20 +37,44 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 	while (ss >> word)
 		splitArgs.push_back(word);
 	size_t vecSize = splitArgs.size();
+	std::cout << "split args: " << std::endl;
+	for (auto i : splitArgs)
+		std::cout << i << std::endl;
+	std::cout << "end splitargs" << std::endl;
 	if (sender == nullptr)
 		throw std::runtime_error("invalid user");
 	if (vecSize < 1)
 		return ;
 	else if (!splitArgs[0].compare("CAP")){
+		send(sender->get_sockfd(), "421 CAP :No Cap\r\n", 17, 0);
+		std::reverse(splitArgs.begin(), splitArgs.end());
+		splitArgs.pop_back();
+		splitArgs.pop_back();
+		std::reverse(splitArgs.begin(), splitArgs.end());
+	}
+	else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
+		std::cout << "validate password" << std::endl;
+		//validate password
+	if (!splitArgs[0].compare("NICK"))
+		sender->storeNick(splitArgs, *sender);
+	if (!splitArgs[0].compare("USER")){
 		send(sender->get_socket(), "421 CAP :No Cap\r\n", 17, 0);
 	}
 	// /else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
 		// validate password
 	else if (!splitArgs[0].compare("NICK"))
-		sender->storeNick(splitArgs[1], *sender);
-	else if (!splitArgs[0].compare("USER"))
+		sender->storeNick(splitArgs, *sender);
+	else if (!splitArgs[0].compare("USER")){
 		// TODO: Check for valid user arguments and completenes
-		sender->storeUserVals(splitArgs, *sender);
+		std::cout << "USER function called:" << std::endl;
+		if (!splitArgs[0].empty()){
+			std::cout << "splitargs[0]" << splitArgs[0] << std::endl;
+			sender->storeUserVals(splitArgs, *sender);
+		}
+		else{
+			std::cout << "splitargs[0] empty" << std::endl;
+		}
+	}
 	else if ((vecSize > 1) && (!splitArgs[0].compare("netcatter")))
 		std::cout << "netcatter command" << std::endl;
 		//netcatter reply
