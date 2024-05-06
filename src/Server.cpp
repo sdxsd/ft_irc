@@ -72,8 +72,8 @@ void Server::handle_client(Client& client) {
 	buf_string += buf;
 	std::cout << "buf string: " << buf_string << std::endl;
 	//std::cout << "hostname: " << client.get_hostname() << std::endl;
-	if (buf_string.find("\r\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
-		end = buf_string.find("\r\n") + 2;
+	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
+		end = buf_string.find("\n") + 1;
 		command = buf_string.substr(0, end);
 		std::cout << "command: " << command << std::endl;
 		getCMD(command, &client);
