@@ -11,8 +11,12 @@ password(password), mode(mode) {
 			throw InvalidChannelName();
 }
 
-std::map<int, Client>& Channel::clients_in_channel() {
+const std::map<int, Client>& Channel::clients_in_channel() {
 	return (users);
+}
+
+const std::vector<int>& Channel::operators_in_channel() {
+	return (operators);
 }
 
 const char *Channel::InvalidChannelName::what() {
