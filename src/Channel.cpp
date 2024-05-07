@@ -11,7 +11,7 @@ password(password), mode(mode) {
 			throw InvalidChannelName();
 }
 
-const std::map<int, Client>& Channel::clients_in_channel() {
+std::map<int, Client>& Channel::clients_in_channel() {
 	return (users);
 }
 
@@ -19,9 +19,9 @@ const std::vector<int>& Channel::operators_in_channel() {
 	return (operators);
 }
 
-const char *Channel::InvalidChannelName::what() {
-	return ("Invalid channel name.");
-}
+// const char *Channel::InvalidChannelName::what() {
+// 	return ("Invalid channel name.");
+// }
 
 void Channel::add_client_to_channel(int fd, const Client& client) {
 	if (users.find(fd) == users.end())

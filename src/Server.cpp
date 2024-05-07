@@ -52,7 +52,7 @@ void Server::send_to_channel(const std::string& channel_name, const std::string 
 void Server::pop_cmd(std::string &buf_string)
 {
 	std::cout << "start string: " << buf_string << std::endl;
-	int start = buf_string.find("\r\n");
+	size_t start = buf_string.find("\r\n");
 	if (start == std::string::npos)
 		return;
 	buf_string = buf_string.substr((start + 2), (buf_string.size() - (start + 3)));
@@ -73,11 +73,12 @@ void Server::handle_client(Client& client) {
 	std::cout << "buf string: " << buf_string << std::endl;
 	//std::cout << "hostname: " << client.get_hostname() << std::endl;
 	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
-		end = buf_string.find("\n") + 1;
-		command = buf_string.substr(0, end);
+		end = buf_string.find("\n");
+		command = buf_string.substr(0, end + 1);
 		std::cout << "command: " << command << std::endl;
 		getCMD(command, &client);
 		buf_string = buf_string.substr(end, buf_string.size() - end);
+		std::cout << "remnant after command: " << buf_string << std::endl;
 	}
 	else {
 		;
@@ -111,10 +112,10 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 	while (ss >> word)
 		splitArgs.push_back(word);
 	size_t vecSize = splitArgs.size();
-	std::cout << "split args: " << std::endl;
-	for (auto i : splitArgs)
-		std::cout << i << std::endl;
-	std::cout << "end splitargs" << std::endl;
+	//std::cout << "split args: " << std::endl;
+	// for (auto i : splitArgs)
+	// 	std::cout << i << std::endl;
+	//std::cout << "end splitargs" << std::endl;
 	if (sender == nullptr)
 		throw std::runtime_error("invalid user");
 	if (vecSize < 1)
@@ -124,7 +125,12 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 		std::reverse(splitArgs.begin(), splitArgs.end());
 		splitArgs.pop_back();
 		splitArgs.pop_back();
+		if (!splitArgs.empty())
+			splitArgs.pop_back();
 		std::reverse(splitArgs.begin(), splitArgs.end());
+		//std::cout << "remains after cap: " << std::endl;
+		for (auto i : splitArgs)
+			std::cout << i << std::endl;  
 	}
 	else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
 		std::cout << "validate password" << std::endl;
@@ -140,9 +146,9 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 		sender->storeNick(splitArgs, *sender);
 	else if (!splitArgs[0].compare("USER")){
 		// TODO: Check for valid user arguments and completenes
-		std::cout << "USER function called:" << std::endl;
+		//std::cout << "USER function called:" << std::endl;
 		if (!splitArgs[0].empty()){
-			std::cout << "splitargs[0]" << splitArgs[0] << std::endl;
+			//std::cout << "splitargs[0]" << splitArgs[0] << std::endl;
 			sender->storeUserVals(splitArgs, *sender);
 		}
 		else{
@@ -186,63 +192,63 @@ void Server::getCMD(std::string cmd_buf, Client *sender)
 		//MODE reply
 }
 
-void Server::accept_new_client() {
-	sockaddr_in	client_addr;
-	int			sockfd;
-	socklen_t	client_address_length = sizeof(client_addr);
+// void Server::accept_new_client() {
+// 	sockaddr_in	client_addr;
+// 	int			sockfd;
+// 	socklen_t	client_address_length = sizeof(client_addr);
 
-	sockfd = accept(server_sockfd, (sockaddr*)&client_addr, &client_address_length);
-	if (sockfd != -1) {
-		std::cout << "Client connected!" << std::endl; // TODO: TEMP
-		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
-		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them.
-		clients.find(sockfd)->second.append_to_messages("001 <name> :Welcome to the server!\r\n");
-	}
-}
+// 	sockfd = accept(server_sockfd, (sockaddr*)&client_addr, &client_address_length);
+// 	if (sockfd != -1) {
+// 		std::cout << "Client connected!" << std::endl; // TODO: TEMP
+// 		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
+// 		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them.
+// 		clients.find(sockfd)->second.append_to_messages("001 <name> :Welcome to the server!\r\n");
+// 	}
+// }
 
-void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
-	Channel& channel = channels.find(channel_name)->second; // Get channel from channel name.
-	for (auto c : channel.clients_in_channel()) // Loop through all clients in channel.
-		c.second.append_to_messages(message); // Append message to clients stack of message to be sent.
-}
+// void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
+// 	Channel& channel = channels.find(channel_name)->second; // Get channel from channel name.
+// 	for (auto c : channel.clients_in_channel()) // Loop through all clients in channel.
+// 		c.second.append_to_messages(message); // Append message to clients stack of message to be sent.
+// }
 
-void Server::handle_client(Client& client) {
-	char		buf[BUFSIZE];
-	std::string	buf_string;
-	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE, 0);
-	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
-		disconnect_client(client);
-		return ;
-	}
-	buf_string = buf;
-	std::cout << "hostname: " << client.get_hostname() << std::endl;
-	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
-		getCMD(buf_string, &client);
-	}
-	else {
-		;
-	}
-}
+// void Server::handle_client(Client& client) {
+// 	char		buf[BUFSIZE];
+// 	std::string	buf_string;
+// 	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE, 0);
+// 	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
+// 		disconnect_client(client);
+// 		return ;
+// 	}
+// 	buf_string = buf;
+// 	std::cout << "hostname: " << client.get_hostname() << std::endl;
+// 	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
+// 		getCMD(buf_string, &client);
+// 	}
+// 	else {
+// 		;
+// 	}
+// }
 
-void Server::disconnect_client(Client &client) {
-	std::cout << "Client disconnected." << std::endl;
-	clients.erase(client.get_socket());
-	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
-		if (it->fd == client.get_socket()) {
-			poll_sockfds.erase(it);
-			break ;
-		}
-	}
+// void Server::disconnect_client(Client &client) {
+// 	std::cout << "Client disconnected." << std::endl;
+// 	clients.erase(client.get_socket());
+// 	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
+// 		if (it->fd == client.get_socket()) {
+// 			poll_sockfds.erase(it);
+// 			break ;
+// 		}
+// 	}
 	
-	// TODO: Go through each channel also removing the user.
-	return ;
-}
+// 	// TODO: Go through each channel also removing the user.
+// 	return ;
+// }
 
 // If using this function, check that the return value does not match clients.end()
-Client& Server::get_user(int fd)
-{
-	return (clients.find(fd)->second);
-}
+// Client& Server::get_user(int fd)
+// {
+// 	return (clients.find(fd)->second);
+// }
 
 void Server::run(void) {
 	if (listen(server_sockfd, MAXCLIENT) == -1) {
