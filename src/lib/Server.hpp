@@ -23,7 +23,7 @@ class Server {
 		std::map<std::string, Channel>	channels;
 		std::vector<pollfd>				poll_sockfds;
 		const std::string				&password;
-		void	getCMD(std::string cmd_buf, Client *sender);
+		void	getCMD(std::string cmd_buf, Client& sender);
 		void	accept_new_client();
 		void	send_to_channel(const std::string& channel_name, const std::string &message);
 		void	handle_client(Client& client);

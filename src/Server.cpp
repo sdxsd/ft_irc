@@ -6,8 +6,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <sstream> 
-#include <algorithm>
+#include <functional>
+#include <map>
+#include <utility>
 
 Server::Server(uint16_t port, const std::string &password): port(port), password(password)  {
 	sockaddr_in	socket_address; // sockaddr_in represents an Internet Protocol address.
@@ -29,87 +30,172 @@ Server::Server(uint16_t port, const std::string &password): port(port), password
 	poll_sockfds.push_back({server_sockfd, POLLIN, 0});
 }
 
-void Server::getCMD(std::string cmd_buf, Client *sender)
+std::vector<std::string> split_by_delim(std::string string, char delimiter) {
+	std::vector<std::string> words;
+
+	size_t pos = 0;
+	while ((pos = string.find(delimiter)) != std::string::npos) {
+		std::string word = string.substr(0, pos);
+		words.push_back(word);
+		string.erase(0, pos + 1);
+	}
+	return (words);
+}
+
+void Server::getCMD(std::string cmd_buf, Client& sender)
 {
-	std::vector<std::string> splitArgs;
-	std::stringstream ss(cmd_buf);
-	std::string word;
-	while (ss >> word)
-		splitArgs.push_back(word);
-	size_t vecSize = splitArgs.size();
-	std::cout << "split args: " << std::endl;
-	for (auto i : splitArgs)
-		std::cout << i << std::endl;
-	std::cout << "end splitargs" << std::endl;
-	if (sender == nullptr)
-		throw std::runtime_error("invalid user");
-	if (vecSize < 1)
+	const std::map<std::string, std::function<int(std::vector<std::string>)>> commands {
+		{
+			"CAP",
+			[&](std::vector<std::string> args) -> int {
+				if (args[0] == "CAP") {
+					send(sender.get_socket(), "421 CAP :No Cap\r\n", 17, 0);
+				}
+				return (true);
+			},
+		},
+		{
+			"NICK",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: Set nickname.
+				sender.storeNick(args, sender);
+				return (true);
+			},
+		},
+		{
+			"PASS",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: Validate & set password.
+				return (true);
+			},
+		},
+		{
+			"USER",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: Populate user.
+				sender.storeUserVals(args, sender);
+				return (true);
+			},
+		},
+		{
+			"netcatter",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: netcat?
+				return (true);
+			},
+		},
+		{
+			"TOPIC",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: topic
+				return (true);
+			},
+		},
+		{
+			"PING",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: ping
+				return (true);
+			},
+		},
+		{
+			"PART",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: part
+				return (true);
+			},
+		},
+		{
+			"QUIT",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: part
+				return (true);
+			},
+		},
+		{
+			"JOIN",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: join
+				return (true);
+			},
+		},
+		{
+			"PRIVMSG",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: PRIVMSG
+				return (true);
+			},
+		},
+		{
+			"NOTICE",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: notice
+				return (true);
+			},
+		},
+		{
+			"INVITE",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: invite
+				return (true);
+			},
+		},
+		{
+			"KICK",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: kick
+				return (true);
+			},
+		},
+		{
+			"MODE",
+			[&](std::vector<std::string> args) -> int {
+				if (!(args.size() > 1))
+					return (false);
+				// TODO: mode
+				return (true);
+			},
+		},
+	};
+	std::vector<std::string> splitArgs = split_by_delim(cmd_buf, ' ');
+	// std::cout << "=== ARGS ===" << std::endl;
+	// for (auto i : splitArgs)
+	// 	std::cout << i << std::endl;
+	// std::cout << "=== END ===" << std::endl;
+
+	if (splitArgs.size() < 1)
 		return ;
-	else if (!splitArgs[0].compare("CAP")){
-		send(sender->get_socket(), "421 CAP :No Cap\r\n", 17, 0);
-		std::reverse(splitArgs.begin(), splitArgs.end());
-		splitArgs.pop_back();
-		splitArgs.pop_back();
-		std::reverse(splitArgs.begin(), splitArgs.end());
+	else {
+		auto command = commands.find(splitArgs[0]);
+		if (command != commands.end())
+			command->second(splitArgs);
 	}
-	else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
-		std::cout << "validate password" << std::endl;
-		//validate password
-	if (!splitArgs[0].compare("NICK"))
-		sender->storeNick(splitArgs, *sender);
-	if (!splitArgs[0].compare("USER")){
-		send(sender->get_socket(), "421 CAP :No Cap\r\n", 17, 0);
-	}
-	// /else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
-		// validate password
-	else if (!splitArgs[0].compare("NICK"))
-		sender->storeNick(splitArgs, *sender);
-	else if (!splitArgs[0].compare("USER")){
-		// TODO: Check for valid user arguments and completenes
-		std::cout << "USER function called:" << std::endl;
-		if (!splitArgs[0].empty()){
-			std::cout << "splitargs[0]" << splitArgs[0] << std::endl;
-			sender->storeUserVals(splitArgs, *sender);
-		}
-		else{
-			std::cout << "splitargs[0] empty" << std::endl;
-		}
-	}
-	else if ((vecSize > 1) && (!splitArgs[0].compare("netcatter")))
-		std::cout << "netcatter command" << std::endl;
-		//netcatter reply
-	else if (!splitArgs[0].compare("TOPIC"))
-		std::cout << "TOPIC command" << std::endl;
-		//topic reply
-	else if (!splitArgs[0].compare("PING")){
-		sender->replyPing(*sender);
-	}
-	else if (!splitArgs[0].compare("PART"))
-		std::cout << "PART command" << std::endl;
-		//PART reply
-	else if (!splitArgs[0].compare("QUIT"))
-		std::cout << "QUIT command" << std::endl;
-		//QUIT reply
-	else if (vecSize < 2)
-		return ;
-	else if (!splitArgs[0].compare("JOIN"))
-		std::cout << "JOIN command" << std::endl;
-		//JOIN reply
-	else if (!splitArgs[0].compare("PRIVMSG"))
-		std::cout << "PRIVMSG command" << std::endl;
-		//PRIVMSG reply
-	else if (!splitArgs[0].compare("NOTICE"))
-		std::cout << "NOTICE command" << std::endl;
-		//NOTICE reply
-	else if (!splitArgs[0].compare("INVITE"))
-		std::cout << "INVITE command" << std::endl;
-		//INVITE reply
-	else if (!splitArgs[0].compare("KICK"))
-		std::cout << "KICK command" << std::endl;
-		//KICK reply
-	else if (!splitArgs[0].compare("MODE"))
-		std::cout << "MODE command" << std::endl;
-		//MODE reply
 }
 
 void Server::accept_new_client() {
@@ -143,7 +229,7 @@ void Server::handle_client(Client& client) {
 	buf_string = buf;
 	std::cout << "hostname: " << client.get_hostname() << std::endl;
 	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
-		getCMD(buf_string, &client);
+		getCMD(buf_string, client);
 	}
 	else {
 		;
@@ -159,7 +245,6 @@ void Server::disconnect_client(Client &client) {
 			break ;
 		}
 	}
-	
 	// TODO: Go through each channel also removing the user.
 	return ;
 }
