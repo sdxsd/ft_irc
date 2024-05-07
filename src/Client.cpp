@@ -30,7 +30,8 @@ void Client::send_message() {
 }
 
 void Client::replyPing(Client &client) {
-	client.append_to_messages("PONG " + this->get_hostname() + "\r\n");
+	std::string msg = "Pong " + client.get_hostname() + "\r\n";
+	client.append_to_messages(msg);
 	client.send_message();
 }
 
@@ -48,12 +49,14 @@ std::vector<std::string> split(const std::string& str, char delim) {
 void Client::storeNick(std::vector<std::string> &in, Client &client)
 {
 	std::reverse(in.begin(), in.end());	
-	std::cout << "should be NICK: " << in[in.size() - 1] << std::endl;
+	//std::cout << "should be NICK: " << in[in.size() - 1] << std::endl;
 	in.pop_back();
-	std::cout << "nickname: " << in[in.size() - 1] << std::endl;
-	if (!in[in.size()].empty())
+	//std::cout << "nickname: " << in[in.size() - 1] << std::endl;
+	if (!in[in.size() - 1].empty()){
 		client.nickname = in[in.size() - 1];
-	in.pop_back();
+		in.pop_back();
+	}
+	//std::cout << "stored nickname: " <<get_nickname() << std::endl; 
 	std::reverse(in.begin(), in.end());	
 }
 
@@ -85,9 +88,10 @@ void Client::storeUserVals(std::vector<std::string> &in, Client &client){
 	}
 	client.realname = client.realname.substr(1, client.realname.size() - 1);
 	std::reverse(in.begin(), in.end());
-	std::cout << "remaining string: " << std::endl; 
-	for (auto i: in)
-		std::cout << i << " ";
+	std::cout << "remaining string: " << std::endl;
+	int size = in.size(); 
+	for(int i = 0; i < size; i++)
+		std::cout << in[i] << " ";
 	std::cout << std::endl;
 	std::cout << "username: " << client.get_username() << std::endl;
 	std::cout << "hostname: " << client.get_hostname() << std::endl;
@@ -103,30 +107,6 @@ void Client::append_to_messages(const std::string& msg) {
 int Client::get_socket() const {
 	return (client_sockfd);
 }
-
-// std::string	Client::get_username() const{
-// 	if (!this->username.empty())
-// 		return (username);
-// 	return ("none");
-// }
-
-// std::string	Client::get_nickname() const{
-// 	if (!this->nickname.empty())
-// 		return (nickname);
-// 	return ("none");
-// }
-
-// std::string Client::get_hostname() const{
-// 	if (!this->hostname.empty())
-// 		return (hostname);
-// 	return ("none");
-// }
-
-// std::string	Client::get_realname() const{
-// 	if (!this->realname.empty())
-// 		return (realname);
-// 	return ("none");
-// }
 
 const std::string& Client::get_username() const {
 	return (username);

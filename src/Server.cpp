@@ -197,7 +197,6 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 			command->second(splitArgs);
 	}
 }
-
 void Server::accept_new_client() {
 	sockaddr_in	client_addr;
 	int			sockfd;
@@ -212,24 +211,36 @@ void Server::accept_new_client() {
 	}
 }
 
-void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
-	Channel& channel = channels.find(channel_name)->second; // Get channel from channel name.
-	for (auto c : channel.clients_in_channel()) // Loop through all clients in channel.
-		c.second.append_to_messages(message); // Append message to clients stack of message to be sent.
+void Server::pop_cmd(std::string &buf_string)
+{
+	std::cout << "start string: " << buf_string << std::endl;
+	size_t start = buf_string.find("\r\n");
+	if (start == std::string::npos)
+		return;
+	buf_string = buf_string.substr((start + 2), (buf_string.size() - (start + 3)));
+	std::cout << "remaining string:" << buf_string << std::endl;
 }
 
 void Server::handle_client(Client& client) {
 	char		buf[BUFSIZE];
-	std::string	buf_string;
+	static std::string	buf_string;
+	std::string command;
+	int end;
 	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE, 0);
 	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
 		disconnect_client(client);
 		return ;
 	}
-	buf_string = buf;
-	std::cout << "hostname: " << client.get_hostname() << std::endl;
+	buf_string += buf;
+	std::cout << "buf string: " << buf_string << std::endl;
+	//std::cout << "hostname: " << client.get_hostname() << std::endl;
 	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
-		getCMD(buf_string, client);
+		end = buf_string.find("\n");
+		command = buf_string.substr(0, end + 1);
+		std::cout << "command: " << command << std::endl;
+		getCMD(command, client);
+		buf_string = buf_string.substr(end, buf_string.size() - end);
+		std::cout << "remnant after command: " << buf_string << std::endl;
 	}
 	else {
 		;
@@ -254,6 +265,18 @@ Client& Server::get_user(int fd)
 {
 	return (clients.find(fd)->second);
 }
+
+void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
+	Channel& channel = channels.find(channel_name)->second; // Get channel from channel name.
+	for (auto c : channel.clients_in_channel()) // Loop through all clients in channel.
+		c.second.append_to_messages(message); // Append message to clients stack of message to be sent.
+}
+
+// If using this function, check that the return value does not match clients.end()
+// Client& Server::get_user(int fd)
+// {
+// 	return (clients.find(fd)->second);
+// }
 
 void Server::run(void) {
 	if (listen(server_sockfd, MAXCLIENT) == -1) {

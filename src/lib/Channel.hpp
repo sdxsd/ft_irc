@@ -20,12 +20,12 @@ class Channel {
 		std::vector<std::string>	messages;
 		std::map<char, bool>		mode;
 		class InvalidChannelName : public std::exception {
-			public:
-				const char *what();
+			// public:
+			// 	const char *what();
 		};
 	public:
 		Channel(const std::string &name, const std::string& password, std::map<char, bool> mode);
-		const std::map<int, Client>&	clients_in_channel();
+		std::map<int, Client>&	clients_in_channel();
 		const std::vector<int>&			operators_in_channel();
 		void							add_client_to_channel(int fd, const Client& client);
 		void							remove_client_from_channel(int fd);
