@@ -30,17 +30,18 @@ Server::Server(uint16_t port, const std::string &password): port(port), password
 	poll_sockfds.push_back({server_sockfd, POLLIN, 0});
 }
 
-std::vector<std::string> split_by_delim(std::string string, char delimiter) {
-	std::vector<std::string> words;
-
-	size_t pos = 0;
-	while ((pos = string.find(delimiter)) != std::string::npos) {
-		std::string word = string.substr(0, pos);
-		words.push_back(word);
-		string.erase(0, pos + 1);
-	}
-	return (words);
+std::vector<std::string> split_by_delim(std::string str, char delim) {
+	std::vector<std::string> strings;
+    size_t start;
+    size_t end = 0;
+    while ((start = str.find_first_not_of(delim, end)) != std::string::npos) {
+        end = str.find(delim, start);
+        strings.push_back(str.substr(start, end - start));
+    }
+    return strings;
 }
+
+std::vector<std::string> coms = {"CAP", "NICK", "PASS", "USER", "netcatter", "TOPIC", "PING", "PART", "QUIT", "JOIN", "PRIVMSG", "NOTICE", "INVITE", "KICK", "MODE"};
 
 void Server::getCMD(std::string cmd_buf, Client& sender)
 {
@@ -79,6 +80,10 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: Populate user.
+				std::cout << "args: ";
+				for (auto f : args)
+					std::cout << f;
+				std::cout << std::endl;
 				sender.storeUserVals(args, sender);
 				return (true);
 			},
@@ -223,27 +228,34 @@ void Server::pop_cmd(std::string &buf_string)
 
 void Server::handle_client(Client& client) {
 	char		buf[BUFSIZE];
-	static std::string	buf_string;
+	std::string	buf_string;
 	std::string command;
-	int end;
+	size_t end;
 	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE, 0);
 	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
 		disconnect_client(client);
 		return ;
 	}
-	buf_string += buf;
-	std::cout << "buf string: " << buf_string << std::endl;
-	//std::cout << "hostname: " << client.get_hostname() << std::endl;
-	if (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
+	buf_string = buf;
+	//std::cout << "buf_string pre_cut; " << buf_string << std::endl;
+	//std::cout << "buf_string post cut: " << buf_string << std::endl;
+	while (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
 		end = buf_string.find("\n");
 		command = buf_string.substr(0, end + 1);
-		std::cout << "command: " << command << std::endl;
+		std::cout << "command1: [" << command << "]" << std::endl; 
+		for (auto com : coms){
+			if (command.find(com) != std::string::npos){
+				size_t start = command.find(com);
+				//std::cout << "found: " << start << std::endl;
+				command = command.substr(start, (command.size() - start));
+			}
+		}
+		std::cout << "command2: [" << command << "]" << std::endl; 
+		//std::cout << "command: " << command << std::endl;
 		getCMD(command, client);
-		buf_string = buf_string.substr(end, buf_string.size() - end);
-		std::cout << "remnant after command: " << buf_string << std::endl;
-	}
-	else {
-		;
+		buf_string = buf_string.substr(end + 1, buf_string.size() - (end));
+		//std::cout << "buf string: [" << buf_string << "]" << std::endl;
+		//std::cout << "remnant after command: " << buf_string << std::endl;
 	}
 }
 

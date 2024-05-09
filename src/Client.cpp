@@ -62,6 +62,7 @@ void Client::storeNick(std::vector<std::string> &in, Client &client)
 
 void Client::storeUserVals(std::vector<std::string> &in, Client &client){
 	//std::cout << "this should be USER: " << in[0] << std::endl;
+	std::cout << "buffer at start: ";
 	std::reverse(in.begin(), in.end());
 	//std::cout << "should be USER: " << in[in.size() - 1] << std::endl;
 	in.pop_back();
@@ -69,34 +70,35 @@ void Client::storeUserVals(std::vector<std::string> &in, Client &client){
 	in.pop_back();
 	client.hostname = in[in.size() - 1];
 	in.pop_back();
-	in.pop_back();
-	while (!in[in.size() - 1].empty()){
-		std::cout << "current: " << in[in.size() - 1] << std::endl;
-		if (in[in.size() - 1].find("\r\n") != std::string::npos){
-			client.realname.append(in[in.size() - 1]);
-			//std::cout << "added(1): " << in[in.size() - 1] << std::endl; 
+	in.pop_back();;
+	int pos = in.size();
+	while (pos > -1 && !in[pos].empty()){
+		std::cout << "current: " << in[pos] << std::endl;
+		if (in[pos].find("\r\n") != std::string::npos){
+			std::cout << "found end at: " << in[pos] << std::endl;
+			client.realname.append(in[pos]);
 			in.pop_back();
 			break ;
 		}
 		else
 		{
-			client.realname.append(in[in.size() - 1]);
-			//std::cout << "added: " << in[in.size() - 1] << std::endl; 
+			client.realname.append(in[pos]);
 			client.realname.append(" ");
 			in.pop_back();
 		}
+		pos--;
 	}
 	client.realname = client.realname.substr(1, client.realname.size() - 1);
 	std::reverse(in.begin(), in.end());
 	std::cout << "remaining string: " << std::endl;
 	int size = in.size(); 
-	for(int i = 0; i < size; i++)
+	for(int i = 0; i <= size; i++)
 		std::cout << in[i] << " ";
 	std::cout << std::endl;
+	std::cout << "nickname: " << client.get_nickname() << std::endl;
 	std::cout << "username: " << client.get_username() << std::endl;
 	std::cout << "hostname: " << client.get_hostname() << std::endl;
 	std::cout << "realname: " << client.get_realname() << std::endl;
-	exit (0);
 }
 
 
