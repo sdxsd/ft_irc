@@ -6,7 +6,6 @@
 #include <vector>
 #include <poll.h>
 #include <map>
-//#include "Replies.hpp"
 #include "Client.hpp"
 #include "Channel.hpp"
 
@@ -14,6 +13,7 @@
 
 class Client;
 class Channel;
+
 
 class Server {
 	private:

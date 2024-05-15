@@ -25,8 +25,8 @@ class Client {
 		Client(int client_sockfd);
 		~Client();
 		// === Class Methods === //
-		const std::string&	get_recv_buffer() const;
 		void				append_to_recv_buffer(const std::string& buf);
+		void				clear_recv_buffer();
 		void				send_message();
 		void				replyPing(Client &client);
 		void				append_to_messages(const std::string& msg);
@@ -34,6 +34,7 @@ class Client {
 		void 				storeUserVals(std::vector<std::string> &in, Client &client);
 		void 				storeNick(std::vector<std::string> &in, Client &client);
 		void				storePWD(std::string &in, Client &client);
+		std::string			get_recv_buffer();
 		const std::string&	get_username() const;
 		const std::string&	get_nickname() const;
 		const std::string&	get_hostname() const;

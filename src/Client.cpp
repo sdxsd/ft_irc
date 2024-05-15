@@ -13,12 +13,16 @@ Client::~Client() {
 	;
 }
 
-const std::string& Client::get_recv_buffer() const {
+std::string Client::get_recv_buffer() {
 	return (recv_buffer);
 }
 
 void Client::append_to_recv_buffer(const std::string& buf) {
 	recv_buffer += buf;
+}
+
+void Client::clear_recv_buffer() {
+	recv_buffer.clear();
 }
 
 void Client::send_message() {
@@ -33,17 +37,6 @@ void Client::replyPing(Client &client) {
 	std::string msg = "Pong " + client.get_hostname() + "\r\n";
 	client.append_to_messages(msg);
 	client.send_message();
-}
-
-std::vector<std::string> split(const std::string& str, char delim) {
-    std::vector<std::string> strings;
-    size_t start;
-    size_t end = 0;
-    while ((start = str.find_first_not_of(delim, end)) != std::string::npos) {
-        end = str.find(delim, start);
-        strings.push_back(str.substr(start, end - start));
-    }
-    return strings;
 }
 
 void Client::storeNick(std::vector<std::string> &in, Client &client)
