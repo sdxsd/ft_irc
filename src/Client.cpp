@@ -30,7 +30,8 @@ void Client::send_message() {
 }
 
 void Client::replyPing(Client &client) {
-	std::string msg = "Pong " + client.get_hostname() + "\r\n";
+	std::cout << "hostname for ping: [" << client.get_hostname() << std::endl;
+	std::string msg = "PONG " + client.get_hostname() + "\r\n";
 	client.append_to_messages(msg);
 	client.send_message();
 }
@@ -46,6 +47,16 @@ std::vector<std::string> split(const std::string& str, char delim) {
     return strings;
 }
 
+std::string Client::trimWhitespace (std::string &in){
+	int start = 0;
+	int end = in.size();
+	const char* ws = " \t\n\r\f\v";
+
+	start = in.find_first_not_of(ws);
+	end = (in.find_last_not_of(ws) + 1);
+	return(in.substr(start, (end - start)));
+}
+
 void Client::storeNick(std::vector<std::string> &in, Client &client)
 {
 	std::reverse(in.begin(), in.end());	
@@ -53,7 +64,7 @@ void Client::storeNick(std::vector<std::string> &in, Client &client)
 	in.pop_back();
 	//std::cout << "nickname: " << in[in.size() - 1] << std::endl;
 	if (!in[in.size() - 1].empty()){
-		client.nickname = in[in.size() - 1];
+		client.nickname = trimWhitespace(in[in.size() - 1]);
 		in.pop_back();
 	}
 	//std::cout << "stored nickname: " <<get_nickname() << std::endl; 
@@ -62,20 +73,21 @@ void Client::storeNick(std::vector<std::string> &in, Client &client)
 
 void Client::storeUserVals(std::vector<std::string> &in, Client &client){
 	//std::cout << "this should be USER: " << in[0] << std::endl;
-	std::cout << "buffer at start: ";
 	std::reverse(in.begin(), in.end());
 	//std::cout << "should be USER: " << in[in.size() - 1] << std::endl;
+	for (auto i: in)
+		std::cout << i << std::endl;
+	std::cout << "to be popped: " << in[in.size() - 1] << "at position: " << (in.size() - 1) << std::endl;
 	in.pop_back();
 	client.username = in[in.size() - 1];
 	in.pop_back();
 	client.hostname = in[in.size() - 1];
 	in.pop_back();
-	in.pop_back();;
+	in.pop_back();
+	in.pop_back();
 	int pos = in.size();
-	while (pos > -1 && !in[pos].empty()){
-		std::cout << "current: " << in[pos] << std::endl;
+	while (pos > 0 && !in[pos].empty()){
 		if (in[pos].find("\r\n") != std::string::npos){
-			std::cout << "found end at: " << in[pos] << std::endl;
 			client.realname.append(in[pos]);
 			in.pop_back();
 			break ;
@@ -87,41 +99,41 @@ void Client::storeUserVals(std::vector<std::string> &in, Client &client){
 			in.pop_back();
 		}
 		pos--;
+		}
+		client.realname = client.realname.substr(1, client.realname.size() - 1);
+		client.realname = trimWhitespace(client.realname);
+		std::reverse(in.begin(), in.end());
+		int size = in.size(); 
+		for(int i = 0; i <= size; i++)
+			std::cout << in[i] << " ";
+		std::cout << std::endl;
+		std::cout << "nickname: " << client.get_nickname() << std::endl;
+		std::cout << "username: " << client.get_username() << std::endl;
+		std::cout << "hostname: " << client.get_hostname() << std::endl;
+		std::cout << "realname: " << client.get_realname() << std::endl;
 	}
-	client.realname = client.realname.substr(1, client.realname.size() - 1);
-	std::reverse(in.begin(), in.end());
-	std::cout << "remaining string: " << std::endl;
-	int size = in.size(); 
-	for(int i = 0; i <= size; i++)
-		std::cout << in[i] << " ";
-	std::cout << std::endl;
-	std::cout << "nickname: " << client.get_nickname() << std::endl;
-	std::cout << "username: " << client.get_username() << std::endl;
-	std::cout << "hostname: " << client.get_hostname() << std::endl;
-	std::cout << "realname: " << client.get_realname() << std::endl;
-}
 
 
-void Client::append_to_messages(const std::string& msg) {
-	messages.push(msg);
-}
+	void Client::append_to_messages(const std::string& msg) {
+		messages.push(msg);
+	}
 
-int Client::get_socket() const {
-	return (client_sockfd);
-}
+	int Client::get_socket() const {
+		return (client_sockfd);
+	}
 
-const std::string& Client::get_username() const {
-	return (username);
-}
+	const std::string& Client::get_username() const {
+		return (username);
+	}
 
-const std::string& Client::get_nickname() const {
-	return (nickname);
-}
+	const std::string& Client::get_nickname() const {
+		return (nickname);
+	}
 
-const std::string& Client::get_hostname() const {
-	return (hostname);
-}
+	const std::string& Client::get_hostname() const {
+		return (hostname);
+	}
 
-const std::string& Client::get_realname() const {
-	return (realname);
-}
+	const std::string& Client::get_realname() const {
+		return (realname);
+	}

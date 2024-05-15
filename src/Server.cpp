@@ -49,6 +49,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"CAP",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "CAP" << std::endl; 
 				if (args[0] == "CAP") {
 					send(sender.get_socket(), "421 CAP :No Cap\r\n", 17, 0);
 				}
@@ -58,6 +59,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"NICK",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "NICK" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: Set nickname.
@@ -68,6 +70,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"PASS",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "PASS" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: Validate & set password.
@@ -77,13 +80,9 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"USER",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "USER" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
-				// TODO: Populate user.
-				std::cout << "args: ";
-				for (auto f : args)
-					std::cout << f;
-				std::cout << std::endl;
 				sender.storeUserVals(args, sender);
 				return (true);
 			},
@@ -91,6 +90,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"netcatter",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "netcatter" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: netcat?
@@ -100,6 +100,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"TOPIC",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "TOPIC" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: topic
@@ -109,15 +110,17 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"PING",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "PING" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
-				// TODO: ping
+				sender.replyPing(sender);
 				return (true);
 			},
 		},
 		{
 			"PART",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "PART" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: part
@@ -127,6 +130,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"QUIT",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "QUIT" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: part
@@ -136,6 +140,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"JOIN",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "JOIN" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: join
@@ -145,6 +150,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"PRIVMSG",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "PRIVMSG" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: PRIVMSG
@@ -154,6 +160,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"NOTICE",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "NOTICE" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: notice
@@ -163,6 +170,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"INVITE",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "INVITE" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: invite
@@ -172,6 +180,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"KICK",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "KICK" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: kick
@@ -181,6 +190,7 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 		{
 			"MODE",
 			[&](std::vector<std::string> args) -> int {
+				std::cout << "MODE" << std::endl;
 				if (!(args.size() > 1))
 					return (false);
 				// TODO: mode
@@ -188,20 +198,34 @@ void Server::getCMD(std::string cmd_buf, Client& sender)
 			},
 		},
 	};
+	std::cout << "1" << std::endl;
+	if (cmd_buf.empty()){
+		std::cout << "cmd_buf empty" << std::endl;
+		return ;
+	}
 	std::vector<std::string> splitArgs = split_by_delim(cmd_buf, ' ');
-	// std::cout << "=== ARGS ===" << std::endl;
-	// for (auto i : splitArgs)
-	// 	std::cout << i << std::endl;
-	// std::cout << "=== END ===" << std::endl;
-
 	if (splitArgs.size() < 1)
 		return ;
 	else {
 		auto command = commands.find(splitArgs[0]);
-		if (command != commands.end())
-			command->second(splitArgs);
+			if (command != commands.end())
+				command->second(splitArgs);
+		std::cout << "=== ARGS ===" << std::endl;
+		for (auto i : splitArgs)
+			std::cout << i << std::endl;
+		std::cout << "=== END ===" << std::endl;
+		bool pass = false;
+		for (auto c : coms){
+			if (splitArgs[0].find(c) != std::string::npos){
+				std::cout << "found command at start: " << splitArgs[0] << std::endl;
+				pass = true;
+			}
+		}
+		if (pass == false)
+			return;
 	}
 }
+
 void Server::accept_new_client() {
 	sockaddr_in	client_addr;
 	int			sockfd;
@@ -226,6 +250,7 @@ void Server::pop_cmd(std::string &buf_string)
 	std::cout << "remaining string:" << buf_string << std::endl;
 }
 
+
 void Server::handle_client(Client& client) {
 	char		buf[BUFSIZE];
 	std::string	buf_string;
@@ -240,22 +265,29 @@ void Server::handle_client(Client& client) {
 	//std::cout << "buf_string pre_cut; " << buf_string << std::endl;
 	//std::cout << "buf_string post cut: " << buf_string << std::endl;
 	while (buf_string.find("\n") != std::string::npos) { // NOTE: Switched to "\n" as "\r\n" is less common.
+		std::cout << "new loop" << std::endl;
+		std::cout << "buf string: " << buf_string << std::endl; 
 		end = buf_string.find("\n");
 		command = buf_string.substr(0, end + 1);
-		std::cout << "command1: [" << command << "]" << std::endl; 
 		for (auto com : coms){
 			if (command.find(com) != std::string::npos){
 				size_t start = command.find(com);
-				//std::cout << "found: " << start << std::endl;
-				command = command.substr(start, (command.size() - start));
+				std::cout << "found: " << start << std::endl;
+				command = command.substr(start, (end - start));
+				command = client.trimWhitespace(command);
+				std::cout << "command: " << command << std::endl;
+				continue ;
 			}
+			// else{
+			// 	std::cout << "no command" << std::endl;
+			// 	return ;  
+			// }
 		}
-		std::cout << "command2: [" << command << "]" << std::endl; 
-		//std::cout << "command: " << command << std::endl;
+		std::cout << "command going into getCMD: " << command << std::endl;
 		getCMD(command, client);
+		std::cout << "buf string: [" << buf_string << "]" << std::endl;
 		buf_string = buf_string.substr(end + 1, buf_string.size() - (end));
-		//std::cout << "buf string: [" << buf_string << "]" << std::endl;
-		//std::cout << "remnant after command: " << buf_string << std::endl;
+		std::cout << "remnant after command: " << buf_string << std::endl;
 	}
 }
 

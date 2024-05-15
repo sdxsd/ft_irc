@@ -25,6 +25,7 @@ class Client {
 		Client(int client_sockfd);
 		~Client();
 		// === Class Methods === //
+		std::string 		trimWhitespace (std::string &in);
 		const std::string&	get_recv_buffer() const;
 		void				append_to_recv_buffer(const std::string& buf);
 		void				send_message();
