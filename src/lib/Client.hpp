@@ -12,17 +12,19 @@ class Client {
 	private:
 		const int				client_sockfd;
 		std::string				username;
+		std::string				old_nickname;
 		std::string				nickname;
 		std::string				hostname;
 		std::string				realname;
+		std::string				servername;
 		std::stack<std::string>	messages; // Messages waiting to be sent.
 		std::string				recv_buffer; // Appended to until /n is encountered.
 		std::string				send_buffer;
-		bool					authenticated;
+		bool					registered;
 	public:
 		// === Constructor & Destructor === //
 		//Client();
-		Client(int client_sockfd);
+		Client(int sockfd);
 		~Client();
 		// === Class Methods === //
 		void				append_to_recv_buffer(const std::string& buf);
@@ -31,14 +33,15 @@ class Client {
 		void				replyPing(Client &client);
 		void				append_to_messages(const std::string& msg);
 		int					get_socket() const;
-		void 				storeUserVals(std::vector<std::string> &in, Client &client);
-		void 				storeNick(std::vector<std::string> &in, Client &client);
+		void 				register_client(std::vector<std::string> &args);
+		void				set_nickname(std::string nick);
 		void				storePWD(std::string &in, Client &client);
 		std::string			get_recv_buffer();
 		const std::string&	get_username() const;
 		const std::string&	get_nickname() const;
 		const std::string&	get_hostname() const;
 		const std::string&	get_realname() const;
+		bool				is_registered() const;
 };
 
 #endif // CLIENT_HPP

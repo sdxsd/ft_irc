@@ -17,23 +17,35 @@
 // that can be referenced by the program. Rather than the function names being discarded by the
 // compiler, they are preserved and usable by the program in mapping input directly to action.
 int Server::execute_cmd(std::vector<std::string>& args, Client& sender) {
-	static const std::map<std::string, std::function<int()>> command_map {
+	const std::map<std::string, std::function<int()>> command_map {
 		{
 			"CAP", [&]() -> int {
-				sender.append_to_messages("421 CAP :No Cap\r\n");
+				if (args.size() > 2 && args[1] == "LS" && args[2] == "302")
+					sender.append_to_messages(":localhost CAP * LS :\r\n");
 				return (true);
 			},
 		},
 		{
 			"NICK", [&]() -> int {
-				// TODO: Set nickname.
-				sender.storeNick(args, sender);
+				if (args.size() != 2)
+					throw std::runtime_error(ERR_NONICKNAMEGIVEN(sender.get_hostname()));
+				if (args[1][0] == '#' || args[1][0] == '&' || args[1][0] == ':' || args[1][0] == ' ')
+					throw std::runtime_error(ERR_ERRONEUSNICKNAME(sender.get_nickname(), args[1]));
+				for (std::pair<const int, Client>& c : clients)
+					if (c.second.get_nickname() == args[1])
+						throw std::runtime_error(ERR_NICKNAMEINUSE(sender.get_nickname(), args[1]));
+				sender.set_nickname(args[1]);
 				return (true);
 			},
 		},
 		{
 			"PASS", [&]() -> int {
-				// TODO: Validate & set password.
+				if (args.size() != 2)
+					throw std::runtime_error(ERR_NEEDMOREPARAMS(sender.get_nickname(), args[0]));
+				if (sender.is_registered())
+					throw std::runtime_error(ERR_ALREADYREGISTERED(sender.get_nickname()));
+				if (args[1] != password)
+					throw std::runtime_error(ERR_PASSWDMISMATCH(sender.get_nickname()));
 				return (true);
 			},
 		},
@@ -41,7 +53,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& sender) {
 			"USER", [&]() -> int {
 				if (!(args.size() > 1))
 					return (false);
-				sender.storeUserVals(args, sender);
+				sender.register_client(args);
 				return (true);
 			},
 		},
@@ -77,10 +89,9 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& sender) {
 		},
 		{
 			"JOIN", [&]() -> int {
-				std::cout << "Join command called." << std::endl;
-				if (args[1][0] != ':') {
-					throw std::runtime_error(ERR_BADCHANMASK(sender.get_nickname(), args[1]));
-				}
+				if (!sender.is_registered())
+					throw std::runtime_error(ERR_NOTREGISTERED(sender.get_nickname()));
+
 				return (true);
 			},
 		},
@@ -117,8 +128,10 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& sender) {
 	};
 
 	auto command = command_map.find(args[0]);
-	if (command != command_map.end())
+	if (command != command_map.end()) {
+		std::cout << "Client invoked: " << args[0] << std::endl;
 		command->second();
+	}
 	else
 		throw std::runtime_error(ERR_UNKNOWNCOMMAND(sender.get_nickname(), args[0]));
 	return (true);

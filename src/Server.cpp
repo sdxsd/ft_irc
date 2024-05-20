@@ -46,46 +46,56 @@ void Server::accept_new_client() {
 	}
 }
 
-void Server::pop_cmd(std::string &buf_string) {
-	std::cout << "start string: " << buf_string << std::endl;
-	size_t start = buf_string.find("\r\n");
-	if (start == std::string::npos)
-		return;
-	buf_string = buf_string.substr((start + 2), (buf_string.size() - (start + 3)));
-	std::cout << "remaining string:" << buf_string << std::endl;
-}
-
-
-void Server::handle_client(Client& client) {
-	char		buf[BUFSIZE];
-	bzero(&buf, BUFSIZE);
-	std::string	buf_string;
+std::vector<std::string> *Server::read_from_client(Client& client) {
+	char buf[BUFSIZE];
+	for (int i = 0; i < BUFSIZE; i++)
+		buf[i] = '\0';
 	ssize_t bytes_read = recv(client.get_socket(), &buf, BUFSIZE - 1, 0);
 	if (bytes_read == 0 || bytes_read == -1) { // TODO: Separate -1 from 0, as one indicates an error.
 		disconnect_client(client);
-		return ;
+		return (NULL);
 	}
-	buf_string = buf;
-	std::cout << buf_string << std::endl;
-	if (buf_string.find("\r\n") != std::string::npos) {
-		if (!client.get_recv_buffer().empty()) {
-			client.append_to_recv_buffer(buf);
-			buf_string = client.get_recv_buffer();
-			client.clear_recv_buffer();
-		}
-		std::vector<std::string> split_cmd = split(buf_string, ' ');
-		for (std::string str : split_cmd)
-			trimWhitespace(str);
+	std::string buf_string = buf;
+	return (split(buf_string, "\r\n"));
+}
+
+void Server::handle_client(Client& client) {
+	std::vector<std::string> *lines = read_from_client(client);
+	if (lines == NULL)
+		return ;
+	for (auto l : *lines) {
+		std::vector<std::string> *tokens = split(l, " ");
+		std::cout << l << std::endl;
+		for (std::string s : *tokens)
+			trimWhitespace(s);
 		try {
-			execute_cmd(split_cmd, client);
+			execute_cmd(*tokens, client);
 		}
 		catch (std::runtime_error &e) {
 			client.append_to_messages(e.what());
 		}
+		delete tokens;
 	}
-	else {
-		client.append_to_recv_buffer(buf_string);
-	}
+	delete lines;
+	// if (buf_string.find("\r\n") != std::string::npos) {
+	// 	if (!client.get_recv_buffer().empty()) {
+	// 		client.append_to_recv_buffer(buf);
+	// 		buf_string = client.get_recv_buffer();
+	// 		client.clear_recv_buffer();
+	// 	}
+	// 	std::vector<std::string> split_cmd = split(buf_string, " ");
+	// 	for (std::string str : split_cmd)
+	// 		trimWhitespace(str);
+	// 	try {
+	// 		execute_cmd(split_cmd, client);
+	// 	}
+	// 	catch (std::runtime_error &e) {
+	// 		client.append_to_messages(e.what());
+	// 	}
+	// }
+	// else {
+	// 	client.append_to_recv_buffer(buf_string);
+	// }
 }
 
 void Server::disconnect_client(Client &client) {
@@ -101,23 +111,11 @@ void Server::disconnect_client(Client &client) {
 	return ;
 }
 
-// If using this function, check that the return value does not match clients.end()
-Client& Server::get_user(int fd)
-{
-	return (clients.find(fd)->second);
-}
-
 void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
 	Channel& channel = channels.find(channel_name)->second; // Get channel from channel name.
 	for (auto c : channel.clients_in_channel()) // Loop through all clients in channel.
 		c.second.append_to_messages(message); // Append message to clients stack of message to be sent.
 }
-
-// If using this function, check that the return value does not match clients.end()
-// Client& Server::get_user(int fd)
-// {
-// 	return (clients.find(fd)->second);
-// }
 
 void Server::run(void) {
 	if (listen(server_sockfd, MAXCLIENT) == -1) {

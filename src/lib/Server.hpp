@@ -26,11 +26,9 @@ class Server {
 		void	getCMD(std::string cmd_buf, Client& sender);
 		void	accept_new_client();
 		void	send_to_channel(const std::string& channel_name, const std::string &message);
+		std::vector<std::string> *read_from_client(Client& client);
 		void	handle_client(Client& client);
 		void	disconnect_client(Client &client);
-		void 	pop_cmd(std::string &buf_string);
-		Client *getUser(int FD);
-		Client& get_user(int fd);
 		int		execute_cmd(std::vector<std::string>& args, Client& sender); // Implemented in Executor.hpp
 	public:
 		Server(uint16_t port, const std::string& password);

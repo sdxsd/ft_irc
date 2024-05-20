@@ -1,13 +1,13 @@
 #include "lib/Client.hpp"
+#include <stdexcept>
 #include <sys/socket.h>
-#include "lib/utils.hpp"
-#include <vector> 
-#include <algorithm>
+#include "lib/Replies.hpp"
+#include <vector>
 #include <string>
 #include <iostream>
 
-Client::Client(int client_sockfd): client_sockfd(client_sockfd) {
-	;
+Client::Client(int sockfd): client_sockfd(sockfd) {
+	nickname = "<client>";
 }
 
 Client::~Client() {
@@ -30,7 +30,7 @@ void Client::send_message() {
 	if (!messages.empty()) {
 		const std::string message = messages.top();
 		if (send(client_sockfd, message.c_str(), message.length(), 0) != -1) {
-			std::cout << "To client:" << message << std::endl;
+			std::cout << "To client: " << message << std::endl;
 			messages.pop();
 		}
 	}
@@ -42,58 +42,27 @@ void Client::replyPing(Client &client) {
 	client.append_to_messages(msg);
 }
 
-void Client::storeNick(std::vector<std::string> &in, Client &client)
-{
-	std::reverse(in.begin(), in.end());	
-	in.pop_back();
-	if (!in[in.size() - 1].empty()){
-		client.nickname = trimWhitespace(in[in.size() - 1]);
-		in.pop_back();
-	}
-	std::reverse(in.begin(), in.end());
+void Client::set_nickname(std::string nick) {
+	if (!nickname.empty() || nickname == "<client>")
+		old_nickname = nickname;
+	nickname = nick;
 }
 
-void Client::storeUserVals(std::vector<std::string> &in, Client &client){
-	//std::cout << "this should be USER: " << in[0] << std::endl;
-	std::reverse(in.begin(), in.end());
-	//std::cout << "should be USER: " << in[in.size() - 1] << std::endl;
-	for (auto i: in)
-		std::cout << i << std::endl;
-	std::cout << "to be popped: " << in[in.size() - 1] << "at position: " << (in.size() - 1) << std::endl;
-	in.pop_back();
-	client.username = in[in.size() - 1];
-	in.pop_back();
-	client.hostname = in[in.size() - 1];
-	in.pop_back();
-	in.pop_back();
-	in.pop_back();
-	int pos = in.size();
-	while (pos > 0 && !in[pos].empty()){
-		if (in[pos].find("\r\n") != std::string::npos){
-			client.realname.append(in[pos]);
-			in.pop_back();
-			break ;
-		}
-		else
-		{
-			client.realname.append(in[pos]);
-			client.realname.append(" ");
-			in.pop_back();
-		}
-		pos--;
-		}
-		client.realname = client.realname.substr(1, client.realname.size() - 1);
-		client.realname = trimWhitespace(client.realname);
-		std::reverse(in.begin(), in.end());
-		int size = in.size(); 
-		for(int i = 0; i <= size; i++)
-			std::cout << in[i] << " ";
-		std::cout << std::endl;
-		std::cout << "nickname: " << client.get_nickname() << std::endl;
-		std::cout << "username: " << client.get_username() << std::endl;
-		std::cout << "hostname: " << client.get_hostname() << std::endl;
-		std::cout << "realname: " << client.get_realname() << std::endl;
-	}
+bool Client::is_registered() const {
+	return (registered);
+}
+
+void Client::register_client(std::vector<std::string> &args) {
+	const std::string generic_name = "<client>";
+	if (args.size() != 5)
+		throw std::runtime_error(ERR_NEEDMOREPARAMS(generic_name, args[0]));
+	if (registered == true)
+		throw std::runtime_error(ERR_ALREADYREGISTERED(get_nickname()));
+	username = args[1];
+	hostname = args[2];
+	servername = args[3];
+	realname = args[4];
+}
 
 
 	void Client::append_to_messages(const std::string& msg) {
