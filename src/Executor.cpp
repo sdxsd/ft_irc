@@ -1,5 +1,8 @@
-#include "lib/Executor.hpp"
+#include "lib/Server.hpp"
+#include "lib/Replies.hpp"
 #include <functional>
+#include <stdexcept>
+#include <iostream>
 
 // Since an if/else tree feels wrong to me, and switch statements do not work
 // with strings I have created this command_map.
@@ -13,7 +16,7 @@
 // Hence you can think of these not as anonymous functions, but as functions with a name
 // that can be referenced by the program. Rather than the function names being discarded by the
 // compiler, they are preserved and usable by the program in mapping input directly to action.
-bool execute(std::vector<std::string>& args, Client& sender, Server& server) {
+int Server::execute_cmd(std::vector<std::string>& args, Client& sender) {
 	static const std::map<std::string, std::function<int()>> command_map {
 		{
 			"CAP", [&]() -> int {
@@ -23,8 +26,6 @@ bool execute(std::vector<std::string>& args, Client& sender, Server& server) {
 		},
 		{
 			"NICK", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: Set nickname.
 				sender.storeNick(args, sender);
 				return (true);
@@ -32,8 +33,6 @@ bool execute(std::vector<std::string>& args, Client& sender, Server& server) {
 		},
 		{
 			"PASS", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: Validate & set password.
 				return (true);
 			},
@@ -48,100 +47,79 @@ bool execute(std::vector<std::string>& args, Client& sender, Server& server) {
 		},
 		{
 			"netcatter", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: netcat?
 				return (true);
 			},
 		},
 		{
 			"TOPIC", [&]() -> int {
-				if (!(args.size() > 1))
-						return (false);
 				// TODO: topic
 				return (true);
 			},
 		},
 		{
 			"PING", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: ping
 				return (true);
 			},
 		},
 		{
 			"PART", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: part
 				return (true);
 			},
 		},
 		{
 			"QUIT", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: part
 				return (true);
 			},
 		},
 		{
 			"JOIN", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
-				// TODO: join
+				std::cout << "Join command called." << std::endl;
+				if (args[1][0] != ':') {
+					throw std::runtime_error(ERR_BADCHANMASK(sender.get_nickname(), args[1]));
+				}
 				return (true);
 			},
 		},
 		{
 			"PRIVMSG", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: PRIVMSG
 				return (true);
 			},
 		},
 		{
 			"NOTICE", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: notice
 				return (true);
 			},
 		},
 		{
 			"INVITE", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: invite
 				return (true);
 			},
 		},
 		{
 			"KICK", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: kick
 				return (true);
 			},
 		},
 		{
 			"MODE", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
 				// TODO: mode
 				return (true);
 			},
 		},
 	};
 
-	if (args.size() < 1)
-		return (false);
-	else {
-		auto command = command_map.find(args[0]);
-		if (command != command_map.end())
-			command->second();
-	}
+	auto command = command_map.find(args[0]);
+	if (command != command_map.end())
+		command->second();
+	else
+		throw std::runtime_error(ERR_UNKNOWNCOMMAND(sender.get_nickname(), args[0]));
 	return (true);
 }

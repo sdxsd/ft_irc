@@ -9,7 +9,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-# define MAXCLIENT 1024
+#define MAXCLIENT 1024
 
 class Client;
 class Channel;
@@ -31,7 +31,7 @@ class Server {
 		void 	pop_cmd(std::string &buf_string);
 		Client *getUser(int FD);
 		Client& get_user(int fd);
-
+		int		execute_cmd(std::vector<std::string>& args, Client& sender); // Implemented in Executor.hpp
 	public:
 		Server(uint16_t port, const std::string& password);
 		void	run();

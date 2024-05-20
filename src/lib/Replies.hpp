@@ -30,6 +30,7 @@
 #define ERR_TOOMANYCHANNELS(source, channel) "405 " + source + " " + channel + " :You have joined too many channels"
 #define ERR_NOTONCHANNEL(source, channel) "442 " + source + " " + channel + " :You're not on that channel"
 #define ERR_BADCHANNELKEY(source, channel) "475 " + source + " " + channel + " :Cannot clientJoinChannel channel (+k)"
+#define ERR_BADCHANMASK(source, channel) ":" + source + " 476 " + channel + " :Invalid Channel Mask"
 #define ERR_NOSUCHCHANNEL(source, channel) "403 " + source + " " + channel + " :No such channel"
 #define ERR_NOSUCHNICK(source, nickname) "401 " + source + " " + nickname + " :No such nickname"
 #define ERR_USERNOTINCHANNEL(source, nickname, channel) "441 " + source + " " + nickname + " " + channel + " :They aren't on that channel"
