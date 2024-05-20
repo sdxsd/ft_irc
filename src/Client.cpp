@@ -62,6 +62,7 @@ void Client::register_client(std::vector<std::string> &args) {
 	hostname = args[2];
 	servername = args[3];
 	realname = args[4];
+	registered = true;
 }
 
 
