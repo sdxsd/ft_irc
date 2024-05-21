@@ -1,6 +1,7 @@
 #include "lib/Channel.hpp"
 #include <iostream>
 #include <algorithm>
+#include <stdexcept>
 
 Channel::Channel(const std::string &name, const std::string& password, std::map<char, bool> mode):
 name(name), password(password), mode(mode) {
@@ -26,13 +27,15 @@ bool Channel::is_client_in_channel(int client_sockfd) {
 void Channel::add_client_to_channel(const Client& client) {
 	if (!is_client_in_channel(client.get_socket()))
 		clients.insert({client.get_socket(), client});
+	// else
+	// 	throw std::runtime_error(ERR_); // TODO: Add error for when client attempts to join channel they are in.
 }
 
-void Channel::remove_client_from_channel(int fd) {
-	if (clients.erase(fd) == 0)
-		std::cerr <<  "Error when attempting to remove user " << fd << "from channel " << name << " USER NOT IN CHANNEL" << std::endl;
-	else
-		std::cout << "User " << fd << "removed from channel " << name << std::endl;
+void Channel::remove_client_from_channel(const Client& client) {
+	if (is_client_in_channel(client.get_socket()))
+		clients.erase(client.get_socket());
+	// else
+	// 	; // TODO: Throw error.
 }
 
 void Channel::echo_message_to_channel(const std::string& msg) {

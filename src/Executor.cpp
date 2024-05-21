@@ -107,7 +107,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				auto channel = channels.find(args[1]);
 				if (channel != channels.end()) {
 					channel->second.add_client_to_channel(client);
-					std::cout << "Client has been added to channel" << std::endl;
+					std::cout << "Client has been added to channel." << std::endl;
 				}
 				else {
 					channels.insert({args[1], Channel(args[1], "", {})}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.

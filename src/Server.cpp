@@ -76,23 +76,7 @@ void Server::handle_client(Client& client) {
 		delete tokens;
 	}
 	delete lines;
-	// if (buf_string.find("\r\n") != std::string::npos) {
-	// 	if (!client.get_recv_buffer().empty()) {
-	// 		client.append_to_recv_buffer(buf);
-	// 		buf_string = client.get_recv_buffer();
-	// 		client.clear_recv_buffer();
-	// 	}
-	// 	std::vector<std::string> split_cmd = split(buf_string, " ");
-	// 	for (std::string str : split_cmd)
-	// 		trimWhitespace(str);
-	// 	try {
-	// 		execute_cmd(split_cmd, client);
-	// 	}
-	// 	catch (std::runtime_error &e) {
-	// 		client.append_to_messages(e.what());
-	// 	}
-	// }
-	// else {
+	// else { // TODO: Need to store incomplete messages in the damn recv buffer, not a problem with IRSSI.
 	// 	client.append_to_recv_buffer(buf_string);
 	// }
 }
