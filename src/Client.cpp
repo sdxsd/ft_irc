@@ -8,6 +8,8 @@
 
 Client::Client(int sockfd): client_sockfd(sockfd) {
 	nickname = "<client>";
+	registered = false;
+	std::cout << "New client created, based." << std::endl;
 }
 
 Client::~Client() {
@@ -65,27 +67,26 @@ void Client::register_client(std::vector<std::string> &args) {
 	registered = true;
 }
 
+void Client::append_to_messages(const std::string& msg) {
+	messages.push(msg);
+}
 
-	void Client::append_to_messages(const std::string& msg) {
-		messages.push(msg);
-	}
+int Client::get_socket() const {
+	return (client_sockfd);
+}
 
-	int Client::get_socket() const {
-		return (client_sockfd);
-	}
+const std::string& Client::get_username() const {
+	return (username);
+}
 
-	const std::string& Client::get_username() const {
-		return (username);
-	}
+const std::string& Client::get_nickname() const {
+	return (nickname);
+}
 
-	const std::string& Client::get_nickname() const {
-		return (nickname);
-	}
+const std::string& Client::get_hostname() const {
+	return (hostname);
+}
 
-	const std::string& Client::get_hostname() const {
-		return (hostname);
-	}
-
-	const std::string& Client::get_realname() const {
-		return (realname);
-	}
+const std::string& Client::get_realname() const {
+	return (realname);
+}

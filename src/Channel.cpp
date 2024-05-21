@@ -25,8 +25,10 @@ bool Channel::is_client_in_channel(int client_sockfd) {
 }
 
 void Channel::add_client_to_channel(const Client& client) {
-	if (!is_client_in_channel(client.get_socket()))
+	if (!is_client_in_channel(client.get_socket())) {
 		clients.insert({client.get_socket(), client});
+		std::cout << "Added client: " << client.get_nickname() << " To: " << name << std::endl;
+	}
 	// else
 	// 	throw std::runtime_error(ERR_); // TODO: Add error for when client attempts to join channel they are in.
 }

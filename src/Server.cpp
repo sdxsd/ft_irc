@@ -76,9 +76,8 @@ void Server::handle_client(Client& client) {
 		delete tokens;
 	}
 	delete lines;
-	// else { // TODO: Need to store incomplete messages in the damn recv buffer, not a problem with IRSSI.
+	// TODO: Need to store incomplete messages in the damn recv buffer, not a problem with IRSSI.
 	// 	client.append_to_recv_buffer(buf_string);
-	// }
 }
 
 void Server::disconnect_client(Client &client) {

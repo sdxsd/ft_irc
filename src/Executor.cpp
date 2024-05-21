@@ -74,7 +74,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 		{
 			"PING", [&]() -> int {
-				// TODO: ping
+				client.append_to_messages("PONG :");
 				return (true);
 			},
 		},
@@ -111,6 +111,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				}
 				else {
 					channels.insert({args[1], Channel(args[1], "", {})}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
+					auto channel = channels.find(args[1]);
+					channel->second.add_client_to_channel(client);
 					std::cout << "Channel successfully created" << std::endl;
 				}
 				return (true);
@@ -119,10 +121,18 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		{
 			"PRIVMSG", [&]() -> int {
 				if (!client.is_registered())
-					throw ERR_NOTREGISTERED(client.get_nickname());
-				for (auto& c : channels) {
-
+					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
+				auto channel = channels.find(args[1]); // FIXME: Messages need to be sent to users too.
+				if (channel != channels.end()) {
+					auto& cloids = channel->second.clients_in_channel();
+					for (auto& c : cloids) {
+						c.second.append_to_messages(RPL_PRIVMSG(client.get_nickname(), args[1], args[2]));
+						c.second.send_message();
+						std::cout << c.second.get_nickname() << std::endl;
+					}
 				}
+				else
+					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
 				return (true);
 			},
 		},
