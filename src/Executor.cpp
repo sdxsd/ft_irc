@@ -74,7 +74,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 		{
 			"PING", [&]() -> int {
-				client.append_to_messages("PONG :");
+				client.append_to_messages("PING :server :\r\n");
 				return (true);
 			},
 		},
@@ -126,9 +126,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (channel != channels.end()) {
 					auto& cloids = channel->second.clients_in_channel();
 					for (auto& c : cloids) {
-						c.second.append_to_messages(RPL_PRIVMSG(client.get_nickname(), args[1], args[2]));
-						c.second.send_message();
-						std::cout << c.second.get_nickname() << std::endl;
+						if (c.first != client.get_socket()) // FIXME: Currently only sending the first word...
+							c.second.append_to_messages(RPL_PRIVMSG(client.get_nickname(), args[1], args[2]));
 					}
 				}
 				else
