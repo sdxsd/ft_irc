@@ -15,17 +15,15 @@ class Channel {
 	private:
 		const std::string			name;
 		std::string					password;
-		std::map<int, Client>		users;
+		std::map<int, Client>		clients;
 		std::vector<int>			operators;
 		std::vector<std::string>	messages;
 		std::map<char, bool>		mode;
-		class InvalidChannelName : public std::exception {
-			// public:
-			// 	const char *what();
-		};
+		class InvalidChannelName : public std::exception {};
 	public:
 		Channel(const std::string &name, const std::string& password, std::map<char, bool> mode);
-		std::map<int, Client>&	clients_in_channel();
+		bool							is_client_in_channel(int client_sockfd);
+		std::map<int, Client>&			clients_in_channel();
 		const std::vector<int>&			operators_in_channel();
 		void							add_client_to_channel(int fd, const Client& client);
 		void							remove_client_from_channel(int fd);
