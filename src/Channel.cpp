@@ -23,11 +23,9 @@ bool Channel::is_client_in_channel(int client_sockfd) {
 	return ((clients.find(client_sockfd) != clients.end()));
 }
 
-void Channel::add_client_to_channel(int fd, const Client& client) {
-	if (clients.find(fd) == clients.end())
-		clients.insert(std::make_pair(fd, client));
-	else
-		std::cerr << "Error when attempting to add user " << fd << "to channel " << name << " USER ALREADY IN CHANNEL" << std::endl;
+void Channel::add_client_to_channel(const Client& client) {
+	if (!is_client_in_channel(client.get_socket()))
+		clients.insert({client.get_socket(), client});
 }
 
 void Channel::remove_client_from_channel(int fd) {

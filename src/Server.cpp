@@ -41,7 +41,7 @@ void Server::accept_new_client() {
 	if (sockfd != -1) {
 		std::cout << "Client connected!" << std::endl; // TODO: TEMP
 		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
-		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them.
+		clients.insert({sockfd, Client(sockfd)}); // Client ID represented by the file descriptor used to communicate with them.
 	}
 }
 

@@ -25,7 +25,7 @@ class Channel {
 		bool							is_client_in_channel(int client_sockfd);
 		std::map<int, Client>&			clients_in_channel();
 		const std::vector<int>&			operators_in_channel();
-		void							add_client_to_channel(int fd, const Client& client);
+		void							add_client_to_channel(const Client& client);
 		void							remove_client_from_channel(int fd);
 		void							echo_message_to_channel(const std::string& message);
 		void							promote_user_to_operator(int fd);

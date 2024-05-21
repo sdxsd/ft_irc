@@ -87,9 +87,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		{
 			"QUIT", [&]() -> int {
 				for (auto& p : channels) {
-					Channel& c = p.second;
-					if (c.clients_in_channel().find(client.get_socket()) != c.clients_in_channel().end()) {
-						for (auto& clientoids : c.clients_in_channel()) {
+					if (p.second.is_client_in_channel(client.get_socket())) {
+						for (auto& clientoids : p.second.clients_in_channel()) {
 							if (clientoids.second.get_socket() != client.get_socket())
 								clientoids.second.append_to_messages(RPL_QUIT(client.get_nickname(), ""));
 						}
@@ -107,11 +106,11 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
 				auto channel = channels.find(args[1]);
 				if (channel != channels.end()) {
-					channel->second.add_client_to_channel(client.get_socket(), client);
+					channel->second.add_client_to_channel(client);
 					std::cout << "Client has been added to channel" << std::endl;
 				}
 				else {
-					channels.insert(std::make_pair(args[1], Channel(args[1], "", {}))); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
+					channels.insert({args[1], Channel(args[1], "", {})}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
 					std::cout << "Channel successfully created" << std::endl;
 				}
 				return (true);
