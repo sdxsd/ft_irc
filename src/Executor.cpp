@@ -26,6 +26,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"NICK", [&]() -> int {
 				if (args.size() != 2)
@@ -39,6 +40,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"PASS", [&]() -> int {
 				if (args.size() != 2)
@@ -50,6 +52,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"USER", [&]() -> int {
 				if (!(args.size() > 1))
@@ -60,6 +63,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"netcatter", [&]() -> int {
 				// TODO: netcat?
@@ -84,6 +88,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"QUIT", [&]() -> int {
 				for (auto& p : channels) {
@@ -98,6 +103,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"JOIN", [&]() -> int {
 				if (args.size() < 2)
@@ -118,6 +124,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"PRIVMSG", [&]() -> int {
 				if (!client.is_registered())
@@ -126,8 +133,9 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (channel != channels.end()) {
 					auto& cloids = channel->second.clients_in_channel();
 					for (auto& c : cloids) {
-						if (c.first != client.get_socket()) // FIXME: Currently only sending the first word...
+						if (client.get_socket() != c.first)
 							c.second.append_to_messages(RPL_PRIVMSG(client.get_nickname(), args[1], args[2]));
+						// c.second.send_message();
 					}
 				}
 				else
@@ -135,6 +143,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"NOTICE", [&]() -> int {
 				// TODO: notice
@@ -160,7 +169,6 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			},
 		},
 	};
-
 	auto command = command_map.find(args[0]);
 	if (command != command_map.end()) {
 		std::cout << "Client invoked: " << args[0] << std::endl;
