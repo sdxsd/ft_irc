@@ -133,9 +133,10 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (channel != channels.end()) {
 					auto& cloids = channel->second.clients_in_channel();
 					for (auto& c : cloids) {
-						if (client.get_socket() != c.first)
+						if (c.first != client.get_socket()) {
 							c.second.append_to_messages(RPL_PRIVMSG(client.get_nickname(), args[1], args[2]));
-						// c.second.send_message();
+							c.second.send_message();
+						}
 					}
 				}
 				else
