@@ -82,6 +82,7 @@ void Server::handle_client(Client& client) {
 
 void Server::disconnect_client(Client &client) {
 	std::cout << "Client disconnected." << std::endl;
+	close(client.get_socket());
 	clients.erase(client.get_socket());
 	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
 		if (it->fd == client.get_socket()) {
