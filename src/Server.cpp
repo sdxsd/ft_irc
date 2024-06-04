@@ -70,7 +70,6 @@ void Server::handle_client(Client& client) {
 			trimWhitespace(s);
 		try {
 			if (execute_cmd(*tokens, client) == false) {
-				std::cout << "Client gone...." << std::endl;
 				delete lines;
 				delete tokens;
 				return ;
@@ -105,7 +104,6 @@ void Server::disconnect_client(Client &client) {
 		}
 	}
 	clients.erase(client.get_socket());
-	return ;
 }
 
 void Server::run(void) {

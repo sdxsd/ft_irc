@@ -27,7 +27,7 @@ class Channel {
 		const std::vector<int>&			operators_in_channel();
 		void							add_client_to_channel(Client& client);
 		void							remove_client_from_channel(const Client& client);
-		void							echo_message_to_channel(const std::string& message);
+		void							echo_message_to_channel(int sender_fd, const std::string& message);
 		void							promote_user_to_operator(int fd);
 		void							demote_user_from_operator(int fd);
 };

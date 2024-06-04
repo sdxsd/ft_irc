@@ -39,9 +39,13 @@ void Channel::remove_client_from_channel(const Client& client) {
 	// 	; // TODO: Throw error.
 }
 
-void Channel::echo_message_to_channel(const std::string& msg) {
-	for (auto& u : clients)
-		u.second->append_to_messages(msg);
+void Channel::echo_message_to_channel(int sender_fd, const std::string& msg) {
+	for (auto& c : clients) {
+		if (c.first != sender_fd) {
+			c.second->append_to_messages(msg);
+			c.second->send_message();
+		}
+	}
 }
 
 void Channel::promote_user_to_operator(int fd) {

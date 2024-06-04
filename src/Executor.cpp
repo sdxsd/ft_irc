@@ -129,14 +129,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (!client.is_registered())
 					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
 				auto channel = channels.find(args[1]); // FIXME: Messages can also be sent to users.
-				if (channel != channels.end()) {
-					for (auto& c : channel->second.clients_in_channel()) {
-						if (c.first != client.get_socket()) {
-							c.second->append_to_messages(RPL_PRIVMSG(client.get_nickname(), args[1], args[2]));
-							c.second->send_message();
-						}
-					}
-				}
+				if (channel != channels.end())
+					channel->second.echo_message_to_channel(client.get_socket(), RPL_PRIVMSG(client.get_nickname(), args[1], args[2]));
 				else
 					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
 				return (true);
