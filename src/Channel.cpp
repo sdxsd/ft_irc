@@ -1,7 +1,6 @@
 #include "lib/Channel.hpp"
 #include <iostream>
 #include <algorithm>
-#include <stdexcept>
 
 Channel::Channel(const std::string &name, const std::string& password, std::map<char, bool> mode):
 name(name), password(password), mode(mode) {
@@ -12,7 +11,7 @@ name(name), password(password), mode(mode) {
 			throw InvalidChannelName();
 }
 
-std::map<int, Client>& Channel::clients_in_channel() {
+std::map<int, Client*>& Channel::clients_in_channel() {
 	return (clients);
 }
 
@@ -24,9 +23,9 @@ bool Channel::is_client_in_channel(int client_sockfd) {
 	return ((clients.find(client_sockfd) != clients.end()));
 }
 
-void Channel::add_client_to_channel(const Client& client) {
+void Channel::add_client_to_channel(Client& client) {
 	if (!is_client_in_channel(client.get_socket())) {
-		clients.insert({client.get_socket(), client});
+		clients.insert({client.get_socket(), &client});
 		std::cout << "Added client: " << client.get_nickname() << " To: " << name << std::endl;
 	}
 	// else
@@ -42,7 +41,7 @@ void Channel::remove_client_from_channel(const Client& client) {
 
 void Channel::echo_message_to_channel(const std::string& msg) {
 	for (auto& u : clients)
-		u.second.append_to_messages(msg);
+		u.second->append_to_messages(msg);
 }
 
 void Channel::promote_user_to_operator(int fd) {

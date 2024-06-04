@@ -98,9 +98,10 @@ void Server::disconnect_client(Client &client) {
 	for (auto& p : channels) {
 		if (p.second.is_client_in_channel(client.get_socket())) {
 			for (auto& clientoids : p.second.clients_in_channel()) {
-				if (clientoids.second.get_socket() != client.get_socket())
-					clientoids.second.append_to_messages(RPL_QUIT(client.get_nickname(), ""));
+				if (clientoids.first != client.get_socket())
+					clientoids.second->append_to_messages(RPL_QUIT(client.get_nickname(), ""));
 			}
+			p.second.remove_client_from_channel(client);
 		}
 	}
 	clients.erase(client.get_socket());
@@ -110,7 +111,7 @@ void Server::disconnect_client(Client &client) {
 void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
 	Channel& channel = channels.find(channel_name)->second; // Get channel from channel name.
 	for (auto c : channel.clients_in_channel()) // Loop through all clients in channel.
-		c.second.append_to_messages(message); // Append message to clients stack of message to be sent.
+		c.second->append_to_messages(message); // Append message to clients stack of message to be sent.
 }
 
 void Server::run(void) {
