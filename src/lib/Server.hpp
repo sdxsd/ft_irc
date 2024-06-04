@@ -25,7 +25,6 @@ class Server {
 		const std::string				&password;
 		void	getCMD(std::string cmd_buf, Client& sender);
 		void	accept_new_client();
-		void	send_to_channel(const std::string& channel_name, const std::string &message);
 		std::vector<std::string> *read_from_client(Client& client);
 		void	handle_client(Client& client);
 		void	disconnect_client(Client &client);

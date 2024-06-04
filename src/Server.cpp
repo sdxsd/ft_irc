@@ -108,12 +108,6 @@ void Server::disconnect_client(Client &client) {
 	return ;
 }
 
-void Server::send_to_channel(const std::string& channel_name, const std::string &message) {
-	Channel& channel = channels.find(channel_name)->second; // Get channel from channel name.
-	for (auto c : channel.clients_in_channel()) // Loop through all clients in channel.
-		c.second->append_to_messages(message); // Append message to clients stack of message to be sent.
-}
-
 void Server::run(void) {
 	if (listen(server_sockfd, MAXCLIENT) == -1) {
 		std::cerr << "Error setting socket to listen for connections." << std::endl;
