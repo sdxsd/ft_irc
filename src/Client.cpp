@@ -7,9 +7,8 @@
 #include <iostream>
 
 Client::Client(int sockfd): client_sockfd(sockfd) {
-	nickname = "<client>";
+	nickname = "*"; // * Is often used as a placeholder.
 	registered = false;
-	std::cout << "New client created, based." << std::endl;
 }
 
 Client::~Client() {
@@ -55,11 +54,10 @@ bool Client::is_registered() const {
 }
 
 void Client::register_client(std::vector<std::string> &args) {
-	const std::string generic_name = "<client>";
 	if (args.size() != 5)
-		throw std::runtime_error(ERR_NEEDMOREPARAMS(generic_name, args[0]));
+		throw std::runtime_error(ERR_NEEDMOREPARAMS(nickname, args[0]));
 	if (registered == true)
-		throw std::runtime_error(ERR_ALREADYREGISTERED(get_nickname()));
+		throw std::runtime_error(ERR_ALREADYREGISTERED(nickname));
 	username = args[1];
 	hostname = args[2];
 	servername = args[3];
@@ -81,6 +79,10 @@ const std::string& Client::get_username() const {
 
 const std::string& Client::get_nickname() const {
 	return (nickname);
+}
+
+const std::string& Client::get_old_nickname() const {
+	return (old_nickname);
 }
 
 const std::string& Client::get_hostname() const {

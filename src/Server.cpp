@@ -89,7 +89,6 @@ void Server::disconnect_client(Client &client) {
 			break ;
 		}
 	}
-	// TODO: Go through each channel also removing the user.
 	return ;
 }
 

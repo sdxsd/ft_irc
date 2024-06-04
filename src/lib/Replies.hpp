@@ -7,7 +7,7 @@
 #define RPL_MYINFO(source, serverName, version, userModes, channelModes) "004 " + source + " :" + serverName + " " + version + " available usermodes= " + userModes + " available channel options= " + channelModes + "\r\n"
 #define RPL_NAMREPLY(source, channel, users) "353 " + source + " = " + channel + " :" + users + "\r\n"
 #define RPL_ENDOFNAMES(source, channel) "366 " + source + " " + channel + " :End of /NAMES list.\r\n"
-#define RPL_NICK(source, nickname) ":" + source + " NICK :" + nickname + "\r\n"
+#define RPL_NICK(source, nickname) ":" + source + " NICK " + nickname + "\r\n"
 #define RPL_JOIN(source, channel) ":" + source + " JOIN :" + channel + "\r\n"
 #define RPL_PART(source, channel) ":" + source + " PART :" + channel + "\r\n"
 #define RPL_PRIVMSG(source, target, msg) ":" + source + " PRIVMSG " + target + " " + msg + "\r\n"

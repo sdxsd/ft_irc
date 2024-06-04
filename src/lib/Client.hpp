@@ -39,6 +39,7 @@ class Client {
 		std::string			get_recv_buffer();
 		const std::string&	get_username() const;
 		const std::string&	get_nickname() const;
+		const std::string&  get_old_nickname() const;
 		const std::string&	get_hostname() const;
 		const std::string&	get_realname() const;
 		bool				is_registered() const;

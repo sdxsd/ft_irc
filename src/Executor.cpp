@@ -23,6 +23,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"CAP", [&]() -> int {
 				if (args.size() > 2 && args[1] == "LS" && args[2] == "302")
 					client.append_to_messages(":localhost CAP * LS :\r\n");
+				// else
+					// client.append_to_messages(":localhost CAP * ACK\r\n");
 				return (true);
 			},
 		},
@@ -37,6 +39,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					if (c.second.get_nickname() == args[1])
 						throw std::runtime_error(ERR_NICKNAMEINUSE(client.get_nickname(), args[1]));
 				client.set_nickname(args[1]);
+				client.append_to_messages(RPL_NICK(client.get_old_nickname(), client.get_nickname()));
 				return (true);
 			},
 		},
@@ -59,7 +62,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					return (false);
 				client.register_client(args);
 				client.append_to_messages(RPL_WELCOME(client.get_nickname(), client.get_nickname()));
-				// client.append_to_messages("001 zoe :Welcome to the server!\r\n");
+				client.send_message();
 				return (true);
 			},
 		},
@@ -78,7 +81,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 		{
 			"PING", [&]() -> int {
-				client.append_to_messages("PING :server :\r\n");
+				client.append_to_messages(RPL_PING(std::string("localhost"), std::string("locahost")));
 				return (true);
 			},
 		},
@@ -91,6 +94,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 
 		{
 			"QUIT", [&]() -> int {
+				disconnect_client(client);
 				for (auto& p : channels) {
 					if (p.second.is_client_in_channel(client.get_socket())) {
 						for (auto& clientoids : p.second.clients_in_channel()) {
@@ -99,7 +103,6 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 						}
 					}
 				}
-				disconnect_client(client);
 				return (true);
 			},
 		},
@@ -108,6 +111,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"JOIN", [&]() -> int {
 				if (args.size() < 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+				if (args[1] == ":")
+					return (true);
 				if (!client.is_registered())
 					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
 				auto channel = channels.find(args[1]);
@@ -129,10 +134,9 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"PRIVMSG", [&]() -> int {
 				if (!client.is_registered())
 					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
-				auto channel = channels.find(args[1]); // FIXME: Messages need to be sent to users too.
+				auto channel = channels.find(args[1]); // FIXME: Messages can also be sent to users.
 				if (channel != channels.end()) {
-					auto& cloids = channel->second.clients_in_channel();
-					for (auto& c : cloids) {
+					for (auto& c : channel->second.clients_in_channel()) {
 						if (c.first != client.get_socket()) {
 							c.second.append_to_messages(RPL_PRIVMSG(client.get_nickname(), args[1], args[2]));
 							c.second.send_message();
