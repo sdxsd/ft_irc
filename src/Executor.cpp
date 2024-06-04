@@ -23,8 +23,6 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"CAP", [&]() -> int {
 				if (args.size() > 2 && args[1] == "LS" && args[2] == "302")
 					client.append_to_messages(":localhost CAP * LS :\r\n");
-				// else
-					// client.append_to_messages(":localhost CAP * ACK\r\n");
 				return (true);
 			},
 		},
@@ -50,8 +48,12 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
 				if (client.is_registered())
 					throw std::runtime_error(ERR_ALREADYREGISTERED(client.get_nickname()));
-				if (args[1] != password)
-					throw std::runtime_error(ERR_PASSWDMISMATCH(client.get_nickname()));
+				if (args[1] != password) {
+					client.append_to_messages(ERR_PASSWDMISMATCH(client.get_nickname()));
+					client.send_message();
+					disconnect_client(client);
+					return (false);
+				}
 				return (true);
 			},
 		},
@@ -81,7 +83,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 		{
 			"PING", [&]() -> int {
-				client.append_to_messages(RPL_PING(std::string("localhost"), std::string("locahost")));
+				client.append_to_messages(RPL_PING(std::string("localhost"), args[1]));
 				return (true);
 			},
 		},
@@ -95,15 +97,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		{
 			"QUIT", [&]() -> int {
 				disconnect_client(client);
-				for (auto& p : channels) {
-					if (p.second.is_client_in_channel(client.get_socket())) {
-						for (auto& clientoids : p.second.clients_in_channel()) {
-							if (clientoids.second.get_socket() != client.get_socket())
-								clientoids.second.append_to_messages(RPL_QUIT(client.get_nickname(), ""));
-						}
-					}
-				}
-				return (true);
+				return (false);
 			},
 		},
 
@@ -177,7 +171,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 	auto command = command_map.find(args[0]);
 	if (command != command_map.end()) {
 		std::cout << "Client invoked: " << args[0] << std::endl;
-		command->second();
+		return (command->second());
 	}
 	else
 		throw std::runtime_error(ERR_UNKNOWNCOMMAND(client.get_nickname(), args[0]));

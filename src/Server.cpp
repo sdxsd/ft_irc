@@ -1,5 +1,6 @@
 #include "lib/Server.hpp"
 #include <cstdlib>
+#include "lib/Replies.hpp"
 #include <iostream>
 #include <cstring>
 #include <stdexcept>
@@ -33,8 +34,8 @@ Server::Server(uint16_t port, const std::string &password): port(port), password
 }
 
 void Server::accept_new_client() {
-	sockaddr_in	client_addr;
 	int			sockfd;
+	sockaddr_in	client_addr;
 	socklen_t	client_address_length = sizeof(client_addr);
 
 	sockfd = accept(server_sockfd, (sockaddr*)&client_addr, &client_address_length);
@@ -68,7 +69,12 @@ void Server::handle_client(Client& client) {
 		for (std::string s : *tokens)
 			trimWhitespace(s);
 		try {
-			execute_cmd(*tokens, client);
+			if (execute_cmd(*tokens, client) == false) {
+				std::cout << "Client gone...." << std::endl;
+				delete lines;
+				delete tokens;
+				return ;
+			}
 		}
 		catch (std::runtime_error &e) {
 			client.append_to_messages(e.what());
@@ -83,13 +89,21 @@ void Server::handle_client(Client& client) {
 void Server::disconnect_client(Client &client) {
 	std::cout << "Client disconnected." << std::endl;
 	close(client.get_socket());
-	clients.erase(client.get_socket());
 	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
 		if (it->fd == client.get_socket()) {
 			poll_sockfds.erase(it);
 			break ;
 		}
 	}
+	for (auto& p : channels) {
+		if (p.second.is_client_in_channel(client.get_socket())) {
+			for (auto& clientoids : p.second.clients_in_channel()) {
+				if (clientoids.second.get_socket() != client.get_socket())
+					clientoids.second.append_to_messages(RPL_QUIT(client.get_nickname(), ""));
+			}
+		}
+	}
+	clients.erase(client.get_socket());
 	return ;
 }
 
