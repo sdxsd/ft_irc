@@ -1,14 +1,16 @@
 #include "lib/Channel.hpp"
+#include "lib/Replies.hpp"
 #include <iostream>
 #include <algorithm>
+#include <stdexcept>
 
 Channel::Channel(const std::string &name, const std::string& password, std::map<char, bool> mode):
 name(name), password(password), mode(mode) {
 	if (name[0] != '#')
-		throw InvalidChannelName();
+		throw std::runtime_error(ERR_BADCHANMASK(std::string("something"), name));
 	for (const char& c : "\7 ") // Check for illegal characters within name.
 		if (name.find(c) != std::string::npos)
-			throw InvalidChannelName();
+			throw std::runtime_error(ERR_BADCHANMASK(std::string("something"), name));
 }
 
 std::map<int, Client*>& Channel::clients_in_channel() {
@@ -40,12 +42,15 @@ void Channel::remove_client_from_channel(const Client& client) {
 }
 
 void Channel::echo_message_to_channel(int sender_fd, const std::string& msg) {
-	for (auto& c : clients) {
-		if (c.first != sender_fd) {
+	for (auto& c : clients)
+		if (c.first != sender_fd)
 			c.second->append_to_messages(msg);
-			c.second->send_message();
-		}
-	}
+}
+
+bool Channel::is_user_operator(int fd) {
+	if (std::find(operators.begin(), operators.end(), fd) != operators.end())
+		return (true);
+	return (false);
 }
 
 void Channel::promote_user_to_operator(int fd) {

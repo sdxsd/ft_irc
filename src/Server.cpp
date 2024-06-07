@@ -86,7 +86,7 @@ void Server::handle_client(Client& client) {
 }
 
 void Server::disconnect_client(Client &client) {
-	std::cout << "Client disconnected." << std::endl;
+	std::cout << "Client " << client.get_nickname() << "disconnected." << std::endl;
 	close(client.get_socket());
 	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
 		if (it->fd == client.get_socket()) {
@@ -96,10 +96,11 @@ void Server::disconnect_client(Client &client) {
 	}
 	for (auto& p : channels) {
 		if (p.second.is_client_in_channel(client.get_socket())) {
-			for (auto& clientoids : p.second.clients_in_channel()) {
+			for (auto& clientoids : p.second.clients_in_channel())
 				if (clientoids.first != client.get_socket())
 					clientoids.second->append_to_messages(RPL_QUIT(client.get_nickname(), ""));
-			}
+			if (p.second.is_user_operator(client.get_socket()) == true)
+				p.second.demote_user_from_operator(client.get_socket());
 			p.second.remove_client_from_channel(client);
 		}
 	}
@@ -123,9 +124,8 @@ void Server::run(void) {
 					else
 						handle_client(clients.find(pfd.fd)->second);
 				}
-				else if (pfd.revents & POLLOUT) {
+				else if (pfd.revents & POLLOUT)
 					clients.find(pfd.fd)->second.send_message();
-				}
 			}
 		}
 	}

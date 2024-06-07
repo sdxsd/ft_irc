@@ -33,7 +33,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					throw std::runtime_error(ERR_NONICKNAMEGIVEN(client.get_hostname()));
 				if (args[1][0] == '#' || args[1][0] == '&' || args[1][0] == ':' || args[1][0] == ' ')
 					throw std::runtime_error(ERR_ERRONEUSNICKNAME(client.get_nickname(), args[1]));
-				for (std::pair<const int, Client>& c : clients)
+				for (auto& c : clients)
 					if (c.second.get_nickname() == args[1])
 						throw std::runtime_error(ERR_NICKNAMEINUSE(client.get_nickname(), args[1]));
 				client.set_nickname(args[1]);
@@ -50,7 +50,6 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					throw std::runtime_error(ERR_ALREADYREGISTERED(client.get_nickname()));
 				if (args[1] != password) {
 					client.append_to_messages(ERR_PASSWDMISMATCH(client.get_nickname()));
-					client.send_message();
 					disconnect_client(client);
 					return (false);
 				}
@@ -64,17 +63,10 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					return (false);
 				client.register_client(args);
 				client.append_to_messages(RPL_WELCOME(client.get_nickname(), client.get_nickname()));
-				client.send_message();
 				return (true);
 			},
 		},
 
-		{
-			"netcatter", [&]() -> int {
-				// TODO: netcat?
-				return (true);
-			},
-		},
 		{
 			"TOPIC", [&]() -> int {
 				// TODO: topic

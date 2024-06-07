@@ -19,7 +19,6 @@ class Channel {
 		std::vector<int>			operators;
 		std::vector<std::string>	messages;
 		std::map<char, bool>		mode;
-		class InvalidChannelName : public std::exception {};
 	public:
 		Channel(const std::string &name, const std::string& password, std::map<char, bool> mode);
 		bool							is_client_in_channel(int client_sockfd);
@@ -28,6 +27,7 @@ class Channel {
 		void							add_client_to_channel(Client& client);
 		void							remove_client_from_channel(const Client& client);
 		void							echo_message_to_channel(int sender_fd, const std::string& message);
+		bool							is_user_operator(int fd);
 		void							promote_user_to_operator(int fd);
 		void							demote_user_from_operator(int fd);
 };
