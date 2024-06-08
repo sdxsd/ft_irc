@@ -11,7 +11,6 @@ Client::Client(int sockfd): client_sockfd(sockfd) {
 	nickname = "*"; // * Is often used as a placeholder.
 	registered = false;
 	password_valid = false;
-	std::cout << "Client created" << std::endl;
 }
 
 Client::~Client() {
