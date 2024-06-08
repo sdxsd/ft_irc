@@ -12,7 +12,7 @@
 #define RPL_PART(source, channel) ":" + source + " PART :" + channel + "\r\n"
 #define RPL_PRIVMSG(source, target, msg) ":" + source + " PRIVMSG " + target + " " + msg + "\r\n"
 #define RPL_NOTICE(source, target, msg) ":" + source + " NOTICE " + target + " " + msg + "\r\n"
-#define RPL_QUIT(source, msg) ":" + source + " QUIT :Quit: " + msg + "\r\n"
+#define RPL_QUIT(source, msg) ":" + source + " QUIT " + msg + "\r\n"
 #define RPL_INVITE(source, target, channel) ":" + source + " INVITE " + target + " " + channel + "\r\n"
 #define RPL_KICK(source, channel, target, reason) ":" + source + " KICK " + channel + " " + target + " " + reason + "\r\n"
 #define RPL_MODE(source, channel, modes) ":" + source + " MODE " + channel + " " + modes + "\r\n"

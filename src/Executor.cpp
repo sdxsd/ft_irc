@@ -100,6 +100,12 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 
 		{
 			"QUIT", [&]() -> int {
+				std::string msg = (args.size() > 1) ? args[1] : "No reason";
+				for (auto& channel : channels) {
+					if (channel.second.is_client_in_channel(client.get_socket()) == true) {
+						channel.second.echo_message_to_channel(client.get_socket(), RPL_QUIT(client.get_nickname(), msg));
+					}
+				}
 				disconnect_client(client);
 				return (false);
 			},
