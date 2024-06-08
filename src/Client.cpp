@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <sys/socket.h>
 #include "lib/Replies.hpp"
+#include "lib/utils.hpp"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -54,14 +55,20 @@ bool Client::is_registered() const {
 }
 
 void Client::register_client(std::vector<std::string> &args) {
-	if (args.size() != 5)
+	if (args.size() < 5)
 		throw std::runtime_error(ERR_NEEDMOREPARAMS(nickname, args[0]));
 	if (registered == true)
 		throw std::runtime_error(ERR_ALREADYREGISTERED(nickname));
-	username = args[1];
+	if (args[1].size() > 9)
+		username = args[1].substr(0, 9); // TODO replace with MAX_USERLEN or something.
+	else
+		username = args[1];
 	hostname = args[2];
 	servername = args[3];
-	realname = args[4];
+	realname = "";
+	for (unsigned long i = 4; i < args.size(); i++)
+		realname += args[i];
+	realname = trimWhitespace(realname);
 	registered = true;
 }
 
