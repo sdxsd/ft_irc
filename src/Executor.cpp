@@ -124,8 +124,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
 				const std::string& target = args[1];
 				std::string msg = "";
-				for (int i = 2; i < args.size(); i++) {
-					msg += args[i];
+				for (unsigned long i = 2; i < args.size(); i++) {
+					msg += (args[i] + " ");
 				}
 				if (target[0] == '#') { // Target is channel.
 					auto channel = channels.find(target);
