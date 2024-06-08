@@ -85,6 +85,14 @@ void Server::handle_client(Client& client) {
 	// 	client.append_to_recv_buffer(buf_string);
 }
 
+Client *Server::find_user(const std::string& nick) {
+	for (auto& c : clients) {
+		if (c.second.get_nickname() == nick)
+			return (&c.second);
+	}
+	return (NULL);
+}
+
 void Server::disconnect_client(Client &client) {
 	std::cout << "Client " << client.get_nickname() << "disconnected." << std::endl;
 	close(client.get_socket());

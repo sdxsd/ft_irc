@@ -29,6 +29,7 @@ class Server {
 		void	handle_client(Client& client);
 		void	disconnect_client(Client &client);
 		int		execute_cmd(std::vector<std::string>& args, Client& sender); // Implemented in Executor.hpp
+		Client	*find_user(const std::string& nick);
 	public:
 		Server(uint16_t port, const std::string& password);
 		void	run();

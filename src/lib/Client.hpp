@@ -23,7 +23,6 @@ class Client {
 		bool					registered;
 	public:
 		// === Constructor & Destructor === //
-		//Client();
 		Client(int sockfd);
 		~Client();
 		// === Class Methods === //

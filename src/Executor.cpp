@@ -1,5 +1,7 @@
 #include "lib/Server.hpp"
 #include "lib/Replies.hpp"
+#include "lib/utils.hpp"
+#include <cstddef>
 #include <functional>
 #include <stdexcept>
 #include <iostream>
@@ -117,14 +119,27 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 
 		{
-			"PRIVMSG", [&]() -> int {
+			"PRIVMSG", [&]() -> int { // NOTE: In the interest of a simpler parsing system we have chosen to disallow multiple target messages.
 				if (!client.is_registered())
 					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
-				auto channel = channels.find(args[1]); // FIXME: Messages can also be sent to users.
-				if (channel != channels.end())
-					channel->second.echo_message_to_channel(client.get_socket(), RPL_PRIVMSG(client.get_nickname(), args[1], args[2]));
-				else
-					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
+				const std::string& target = args[1];
+				std::string msg = "";
+				for (int i = 2; i < args.size(); i++) {
+					msg += args[i];
+				}
+				if (target[0] == '#') { // Target is channel.
+					auto channel = channels.find(target);
+					if (channel != channels.end())
+						channel->second.echo_message_to_channel(client.get_socket(), RPL_PRIVMSG(client.get_nickname(), target, msg));
+					else
+						throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
+				}
+				else { // Sending to user.
+					Client *receiver = find_user(target);
+					if (receiver == NULL)
+						throw std::runtime_error(ERR_NOSUCHNICK(client.get_nickname(), target));
+					receiver->append_to_messages(RPL_PRIVMSG(client.get_nickname(), target, msg));
+				}
 				return (true);
 			},
 		},
