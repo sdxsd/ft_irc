@@ -127,6 +127,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				for (unsigned long i = 2; i < args.size(); i++) {
 					msg += (args[i] + " ");
 				}
+				msg = trimWhitespace(msg);
 				if (target[0] == '#') { // Target is channel.
 					auto channel = channels.find(target);
 					if (channel != channels.end())

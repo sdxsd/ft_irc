@@ -66,8 +66,8 @@ void Server::handle_client(Client& client) {
 	for (auto l : *lines) {
 		std::vector<std::string> *tokens = split(l, " ");
 		std::cout << l << std::endl;
-		for (std::string s : *tokens)
-			trimWhitespace(s);
+		for (std::string& s : *tokens)
+			s = trimWhitespace(s);
 		try {
 			if (execute_cmd(*tokens, client) == false) {
 				delete lines;
@@ -94,7 +94,7 @@ Client *Server::find_user(const std::string& nick) {
 }
 
 void Server::disconnect_client(Client &client) {
-	std::cout << "Client " << client.get_nickname() << "disconnected." << std::endl;
+	std::cout << "Client " << client.get_nickname() << " disconnected." << std::endl;
 	close(client.get_socket());
 	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
 		if (it->fd == client.get_socket()) {
