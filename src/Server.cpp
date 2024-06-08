@@ -39,10 +39,11 @@ void Server::accept_new_client() {
 	socklen_t	client_address_length = sizeof(client_addr);
 
 	sockfd = accept(server_sockfd, (sockaddr*)&client_addr, &client_address_length);
+	std::cout << "New client sockfd: " << sockfd << std::endl;
 	if (sockfd != -1) {
 		std::cout << "Client connected!" << std::endl; // TODO: TEMP
 		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
-		clients.insert({sockfd, Client(sockfd)}); // Client ID represented by the file descriptor used to communicate with them.
+		clients.insert(std::make_pair(sockfd, new Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them
 	}
 }
 
@@ -94,7 +95,7 @@ Client *Server::find_user(const std::string& nick) {
 }
 
 void Server::disconnect_client(Client &client) {
-	std::cout << "Client " << client.get_nickname() << " disconnected." << std::endl;
+	std::cout << "Client (stupid)" << client.get_nickname() << " disconnected." << std::endl;
 	close(client.get_socket());
 	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
 		if (it->fd == client.get_socket()) {

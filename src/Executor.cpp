@@ -70,7 +70,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		{
 			"USER", [&]() -> int {
 				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
-					// disconnect_client(client);
+					disconnect_client(client);
 					return (true);
 				}
 				client.register_client(args);

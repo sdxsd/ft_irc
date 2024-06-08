@@ -19,7 +19,7 @@ class Server {
 	private:
 		int								server_sockfd;
 		const uint16_t					port;
-		std::map<int, Client>			clients;
+		std::map<int, Client*>			clients;
 		std::map<std::string, Channel>	channels;
 		std::vector<pollfd>				poll_sockfds;
 		const std::string				&password;

@@ -11,6 +11,7 @@ Client::Client(int sockfd): client_sockfd(sockfd) {
 	nickname = "*"; // * Is often used as a placeholder.
 	registered = false;
 	password_valid = false;
+	std::cout << "Client created" << std::endl;
 }
 
 Client::~Client() {
@@ -70,10 +71,10 @@ bool Client::is_valid_client() const {
 }
 
 void Client::register_client(std::vector<std::string> &args) {
-	if (args.size() < 5)
-		throw std::runtime_error(ERR_NEEDMOREPARAMS(nickname, args[0]));
 	if (registered == true)
 		throw std::runtime_error(ERR_ALREADYREGISTERED(nickname));
+	if (args.size() < 5)
+		throw std::runtime_error(ERR_NEEDMOREPARAMS(nickname, args[0]));
 	if (args[1].size() > 9)
 		username = args[1].substr(0, 9); // TODO replace with MAX_USERLEN or something.
 	else
