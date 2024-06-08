@@ -10,6 +10,7 @@
 Client::Client(int sockfd): client_sockfd(sockfd) {
 	nickname = "*"; // * Is often used as a placeholder.
 	registered = false;
+	password_valid = false;
 }
 
 Client::~Client() {
@@ -52,6 +53,20 @@ void Client::set_nickname(std::string nick) {
 
 bool Client::is_registered() const {
 	return (registered);
+}
+
+bool Client::has_valid_password() const {
+	return (password_valid);
+}
+
+void Client::set_password_validity(bool state) {
+	password_valid = state;
+}
+
+bool Client::is_valid_client() const {
+	if (password_valid == true && registered == true)
+		return (true);
+	return (false);
 }
 
 void Client::register_client(std::vector<std::string> &args) {

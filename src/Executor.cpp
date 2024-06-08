@@ -33,6 +33,10 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"NICK", [&]() -> int {
 				if (args.size() != 2)
 					throw std::runtime_error(ERR_NONICKNAMEGIVEN(client.get_hostname()));
+				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
+					disconnect_client(client);
+					return (true);
+				}
 				if (args[1][0] == '#' || args[1][0] == '&' || args[1][0] == ':' || args[1][0] == ' ')
 					throw std::runtime_error(ERR_ERRONEUSNICKNAME(client.get_nickname(), args[1]));
 				for (auto& c : clients)
@@ -48,21 +52,25 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"PASS", [&]() -> int {
 				if (args.size() != 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-				if (client.is_registered())
-					throw std::runtime_error(ERR_ALREADYREGISTERED(client.get_nickname()));
+				// if (client.is_registered()) // TODO: Determine if this is needed.
+				// 	throw std::runtime_error(ERR_ALREADYREGISTERED(client.get_nickname()));
 				if (args[1] != password) {
 					client.append_to_messages(ERR_PASSWDMISMATCH(client.get_nickname()));
 					disconnect_client(client);
-					return (false);
+					return (true);
 				}
+				else
+					client.set_password_validity(true);
 				return (true);
 			},
 		},
 
 		{
 			"USER", [&]() -> int {
-				if (!(args.size() > 1))
-					return (false);
+				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
+					disconnect_client(client);
+					return (true);
+				}
 				client.register_client(args);
 				client.append_to_messages(RPL_WELCOME(client.get_nickname(), client.get_nickname()));
 				return (true);
@@ -101,7 +109,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
 				if (args[1] == ":")
 					return (true);
-				if (!client.is_registered())
+				if (!client.is_valid_client())
 					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
 				auto channel = channels.find(args[1]);
 				if (channel != channels.end()) {
@@ -120,7 +128,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 
 		{
 			"PRIVMSG", [&]() -> int { // NOTE: In the interest of a simpler parsing system we have chosen to disallow multiple target messages.
-				if (!client.is_registered())
+				if (!client.is_valid_client())
 					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
 				const std::string& target = args[1];
 				std::string msg = "";

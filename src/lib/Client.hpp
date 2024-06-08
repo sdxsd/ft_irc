@@ -21,6 +21,7 @@ class Client {
 		std::string				recv_buffer; // Appended to until /n is encountered.
 		std::string				send_buffer;
 		bool					registered;
+		bool					password_valid;
 	public:
 		// === Constructor & Destructor === //
 		Client(int sockfd);
@@ -42,6 +43,9 @@ class Client {
 		const std::string&	get_hostname() const;
 		const std::string&	get_realname() const;
 		bool				is_registered() const;
+		bool				has_valid_password() const;
+		void				set_password_validity(bool state);
+		bool 				is_valid_client() const;
 };
 
 #endif // CLIENT_HPP
