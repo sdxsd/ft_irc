@@ -34,7 +34,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (args.size() != 2)
 					throw std::runtime_error(ERR_NONICKNAMEGIVEN(client.get_hostname()));
 				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
-					disconnect_client(client);
+					// disconnect_client(client);
 					return (true);
 				}
 				if (args[1][0] == '#' || args[1][0] == '&' || args[1][0] == ':' || args[1][0] == ' ')
@@ -52,12 +52,14 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"PASS", [&]() -> int {
 				if (args.size() != 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-				// if (client.is_registered()) // TODO: Determine if this is needed.
-				// 	throw std::runtime_error(ERR_ALREADYREGISTERED(client.get_nickname()));
+				if (client.is_registered()) // TODO: Determine if this is needed.
+					throw std::runtime_error(ERR_ALREADYREGISTERED(client.get_nickname()));
+				std::cout << "Password set: "<< args[1] << std::endl;
 				if (args[1] != password) {
 					client.append_to_messages(ERR_PASSWDMISMATCH(client.get_nickname()));
+					client.send_message();
 					disconnect_client(client);
-					return (true);
+					return (false);
 				}
 				else
 					client.set_password_validity(true);
@@ -68,7 +70,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		{
 			"USER", [&]() -> int {
 				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
-					disconnect_client(client);
+					// disconnect_client(client);
 					return (true);
 				}
 				client.register_client(args);
