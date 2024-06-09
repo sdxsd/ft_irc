@@ -222,7 +222,31 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 		{
 			"KICK", [&]() -> int {
-				// TODO: kick
+				if (args.size() < 3)
+					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+				auto channel = channels.find(args[1]);
+				if (channel == channels.end())
+					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
+				if (!channel->second.is_client_in_channel(client.get_socket()))
+					throw std::runtime_error(ERR_NOTONCHANNEL(client.get_nickname(), args[1]));
+				Client *user = find_user(args[2]);
+				if (user == NULL || !channel->second.is_client_in_channel(user->get_socket()))
+					throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), args[2], args[1]));
+				if (!channel->second.is_user_operator(client.get_socket()))
+					throw std::runtime_error(ERR_CHANOPRIVSNEEDED(client.get_nickname(), args[1]));
+				std::vector<std::string> forced_part;
+				forced_part.push_back("PART");
+				forced_part.push_back(args[1]);
+				forced_part.push_back(":Forcibly kicked.");
+				execute_cmd(forced_part, *user); // NOTE: Based or cringe?
+				std::string msg = ":Default Reason";
+				if (args.size() > 3) {
+					msg.clear();
+					for (int i = 3; i < args.size(); i++)
+						msg += args[1] + " ";
+					msg = trimWhitespace(msg);
+				}
+				channel->second.echo_message_to_channel(RPL_KICK(client.get_nickname(), args[1], args[2], msg));
 				return (true);
 			},
 		},
