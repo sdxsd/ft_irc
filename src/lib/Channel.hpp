@@ -14,6 +14,7 @@ class Client;
 class Channel {
 	private:
 		const std::string			name;
+		std::string					topic;
 		std::string					password;
 		std::map<int, Client*>		clients;
 		std::vector<int>			operators;
@@ -21,15 +22,18 @@ class Channel {
 		std::map<char, bool>		mode;
 	public:
 		Channel(const std::string &name, const std::string& password, std::map<char, bool> mode);
-		bool							is_client_in_channel(int client_sockfd);
-		std::map<int, Client*>&			clients_in_channel();
-		const std::vector<int>&			operators_in_channel();
-		void							add_client_to_channel(Client& client);
-		void							remove_client_from_channel(const Client& client);
-		void							echo_message_to_channel(const std::string& message);
-		bool							is_user_operator(int fd);
-		void							promote_user_to_operator(int fd);
-		void							demote_user_from_operator(int fd);
+		bool						is_client_in_channel(int client_sockfd);
+		std::map<int, Client*>&		clients_in_channel();
+		const std::vector<int>&		operators_in_channel();
+		void						add_client_to_channel(Client& client);
+		void						remove_client_from_channel(const Client& client);
+		void						echo_message_to_channel(const std::string& message);
+		bool						is_user_operator(int fd);
+		void						promote_user_to_operator(int fd);
+		void						demote_user_from_operator(int fd);
+		void						set_topic(const std::string& text);
+		const std::string&			get_topic() const;
+		bool						channel_has_topic();
 };
 
 #endif // CHANNEL_HPP

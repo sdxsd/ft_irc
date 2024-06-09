@@ -17,6 +17,7 @@
 #define RPL_KICK(source, channel, target, reason) ":" + source + " KICK " + channel + " " + target + " " + reason + "\r\n"
 #define RPL_MODE(source, channel, modes) ":" + source + " MODE " + channel + " " + modes + "\r\n"
 #define RPL_TOPIC(source, channel, topic) ":" + source + " TOPIC " + channel + " " + topic + "\r\n"
+#define RPL_NOTOPIC(client, channel) ":localhost 331 " + client + " #" + channel + " :No topic is set\r\n"
 #define RPL_PING(source, token) ":" + source + " PONG " + token + "\r\n"
 #define RPL_TRYAGAIN(source, nickname) "263 " + source + " :Nickname " + nickname + " is already in use, please try again\r\n"
 #define ERR_UNKNOWNCOMMAND(source, command) "421 " + source + " " + command + " :Unknown command\r\n"

@@ -62,3 +62,17 @@ void Channel::demote_user_from_operator(int fd) {
 	if (oper != operators.end())
 		operators.erase(oper);
 }
+
+void Channel::set_topic(const std::string& text) {
+	topic = text;
+}
+
+const std::string& Channel::get_topic() const {
+	return (topic);
+}
+
+bool Channel::channel_has_topic() {
+	if (topic.empty())
+		return (false);
+	return (true);
+}

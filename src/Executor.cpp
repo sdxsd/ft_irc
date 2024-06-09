@@ -81,7 +81,17 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 
 		{
 			"TOPIC", [&]() -> int {
-				// TODO: topic
+				if (args.size() < 2)
+					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+				auto channel = channels.find(args[1]);
+				if (channel == channels.end())
+					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
+				if (!(channel->second.is_client_in_channel(client.get_socket())))
+					throw std::runtime_error(ERR_NOTONCHANNEL(client.get_nickname(), args[1]));
+				if (channel->second.channel_has_topic())
+					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel->second.get_topic()));
+				else
+					client.append_to_messages(RPL_NOTOPIC(client.get_nickname(), args[1]));
 				return (true);
 			},
 		},
