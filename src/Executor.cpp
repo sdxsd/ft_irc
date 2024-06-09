@@ -182,7 +182,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (target[0] == '#') { // Target is channel.
 					auto channel = channels.find(target);
 					if (channel != channels.end())
-						channel->second.echo_message_to_channel(RPL_PRIVMSG(client.get_hostmask(), target, msg));
+						channel->second.echo_privmsg_to_channel(client.get_socket(), RPL_PRIVMSG(client.get_nickname(), target, msg));
 					else
 						throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
 				}
