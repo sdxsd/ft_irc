@@ -95,12 +95,14 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"PING", [&]() -> int {
 				client.append_to_messages(RPL_PING(std::string("localhost"), args[1]));
 				return (true);
 			},
 		},
+
 		{
 			"PART", [&]() -> int {
 				if (args.size() < 2)
@@ -156,6 +158,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					channels.insert({args[1], Channel(args[1], "", {})}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
 					channel = channels.find(args[1]);
 					channel->second.add_client_to_channel(client);
+					channel->second.promote_user_to_operator(client.get_socket());
 					std::cout << "Channel successfully created" << std::endl;
 				}
 				client.append_to_messages(RPL_JOIN(client.get_hostmask(), args[1]));
@@ -214,12 +217,14 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"INVITE", [&]() -> int {
 				// TODO: invite
 				return (true);
 			},
 		},
+
 		{
 			"KICK", [&]() -> int {
 				if (args.size() < 3)
@@ -242,7 +247,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				std::string msg = ":Default Reason";
 				if (args.size() > 3) {
 					msg.clear();
-					for (int i = 3; i < args.size(); i++)
+					for (unsigned long i = 3; i < args.size(); i++)
 						msg += args[1] + " ";
 					msg = trimWhitespace(msg);
 				}
@@ -250,6 +255,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				return (true);
 			},
 		},
+
 		{
 			"MODE", [&]() -> int {
 				// TODO: mode
