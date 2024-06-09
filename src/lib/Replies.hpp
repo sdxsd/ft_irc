@@ -9,7 +9,7 @@
 #define RPL_ENDOFNAMES(source, channel) "366 " + source + " " + channel + " :End of /NAMES list.\r\n"
 #define RPL_NICK(source, nickname) ":" + source + " NICK " + nickname + "\r\n"
 #define RPL_JOIN(source, channel) ":" + source + " JOIN :" + channel + "\r\n"
-#define RPL_PART(source, channel) ":" + source + " PART :" + channel + "\r\n"
+#define RPL_PART(source, channel, reason) ":" + source + " PART " + channel + " " + (reason.empty() ? "." : reason) + "\r\n"
 #define RPL_PRIVMSG(source, target, msg) ":" + source + " PRIVMSG " + target + " " + msg + "\r\n"
 #define RPL_NOTICE(source, target, msg) ":" + source + " NOTICE " + target + " " + msg + "\r\n"
 #define RPL_QUIT(source, msg) ":" + source + " QUIT " + msg + "\r\n"

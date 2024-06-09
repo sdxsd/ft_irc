@@ -17,6 +17,10 @@ Client::~Client() {
 	;
 }
 
+std::string Client::get_hostmask() const {
+	return (nickname + "!" + username + "@" + hostname);
+}
+
 std::string Client::get_recv_buffer() {
 	return (recv_buffer);
 }

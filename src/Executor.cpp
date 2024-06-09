@@ -34,8 +34,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (args.size() != 2)
 					throw std::runtime_error(ERR_NONICKNAMEGIVEN(client.get_hostname()));
 				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
-					// disconnect_client(client);
-					return (true);
+					disconnect_client(client);
+					return (false);
 				}
 				if (args[1][0] == '#' || args[1][0] == '&' || args[1][0] == ':' || args[1][0] == ' ')
 					throw std::runtime_error(ERR_ERRONEUSNICKNAME(client.get_nickname(), args[1]));
@@ -71,7 +71,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"USER", [&]() -> int {
 				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
 					disconnect_client(client);
-					return (true);
+					return (false);
 				}
 				client.register_client(args);
 				client.append_to_messages(RPL_WELCOME(client.get_nickname(), client.get_nickname()));
@@ -93,7 +93,25 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 		{
 			"PART", [&]() -> int {
-				// TODO: part
+				if (args.size() < 2)
+					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+				if (args[1][0] != '#')
+					throw std::runtime_error(ERR_BADCHANMASK(client.get_nickname(), args[1]));
+				auto channel = channels.find(args[1]);
+				if (channel == channels.end())
+					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
+				if (!(channel->second.is_client_in_channel(client.get_socket())))
+					throw std::runtime_error(ERR_NOTONCHANNEL(client.get_nickname(), args[1]));
+				std::string reason = "";
+				if (args.size() > 2) {
+					for (unsigned long i = 2; i < args.size(); i++)
+						reason += (args[i] + " ");
+					reason = trimWhitespace(reason);
+					channel->second.echo_message_to_channel(RPL_PART(client.get_hostmask(), args[1], reason));
+				}
+				else
+					channel->second.echo_message_to_channel(RPL_PART(client.get_hostmask(), args[1], reason));
+				channel->second.remove_client_from_channel(client);
 				return (true);
 			},
 		},
@@ -103,7 +121,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				std::string msg = (args.size() > 1) ? args[1] : "No reason";
 				for (auto& channel : channels) {
 					if (channel.second.is_client_in_channel(client.get_socket()) == true) {
-						channel.second.echo_message_to_channel(client.get_socket(), RPL_QUIT(client.get_nickname(), msg));
+						channel.second.echo_message_to_channel(RPL_QUIT(client.get_nickname(), msg));
 					}
 				}
 				disconnect_client(client);
@@ -147,7 +165,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (target[0] == '#') { // Target is channel.
 					auto channel = channels.find(target);
 					if (channel != channels.end())
-						channel->second.echo_message_to_channel(client.get_socket(), RPL_PRIVMSG(client.get_nickname(), target, msg));
+						channel->second.echo_message_to_channel(RPL_PRIVMSG(client.get_nickname(), target, msg));
 					else
 						throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
 				}

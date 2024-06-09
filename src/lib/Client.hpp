@@ -36,6 +36,7 @@ class Client {
 		void 				register_client(std::vector<std::string> &args);
 		void				set_nickname(std::string nick);
 		void				storePWD(std::string &in, Client &client);
+		std::string			get_hostmask() const;
 		std::string			get_recv_buffer();
 		const std::string&	get_username() const;
 		const std::string&	get_nickname() const;
