@@ -150,16 +150,20 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				auto channel = channels.find(args[1]);
 				if (channel != channels.end()) {
 					channel->second.add_client_to_channel(client);
-					client.append_to_messages(RPL_JOIN(client.get_hostmask(), args[1]));
 					std::cout << "Client has been added to channel." << std::endl;
 				}
 				else {
 					channels.insert({args[1], Channel(args[1], "", {})}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
-					auto channel = channels.find(args[1]);
+					channel = channels.find(args[1]);
 					channel->second.add_client_to_channel(client);
-					client.append_to_messages(RPL_JOIN(client.get_hostmask(), args[1]));
 					std::cout << "Channel successfully created" << std::endl;
 				}
+				client.append_to_messages(RPL_JOIN(client.get_hostmask(), args[1]));
+				if (channel->second.channel_has_topic())
+					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel->second.get_topic()));
+				for (auto& c : channel->second.clients_in_channel())
+					if (c.first != client.get_socket())
+						client.append_to_messages(RPL_NAMREPLY(client.get_hostmask(), args[1], c.second->get_nickname()));
 				return (true);
 			},
 		},
