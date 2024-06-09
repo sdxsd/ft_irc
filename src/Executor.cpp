@@ -220,7 +220,22 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 
 		{
 			"INVITE", [&]() -> int {
-				// TODO: invite
+				if (args.size() < 3)
+					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+				auto channel = channels.find(args[2]);
+				if (channel == channels.end())
+					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[2]));
+				if (!channel->second.is_client_in_channel(client.get_socket()))
+					throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), client.get_nickname(), args[2]));
+				Client *user = find_user(args[1]);
+				if (user == NULL)
+					throw std::runtime_error(ERR_NOSUCHNICK(client.get_nickname(), args[1]));
+				if (channel->second.is_client_in_channel(user->get_socket()))
+					throw std::runtime_error(ERR_USERONCHANNEL(client.get_nickname(), args[1], args[2]));
+				if (!channel->second.is_user_operator(client.get_socket()))
+					throw std::runtime_error(ERR_CHANOPRIVSNEEDED(client.get_nickname(), args[2]));
+				client.append_to_messages(RPL_INVITING(client.get_hostmask(), client.get_nickname(), user->get_nickname(), args[2]));
+				user->append_to_messages(RPL_INVITE(client.get_hostmask(), user->get_nickname(), args[2]));
 				return (true);
 			},
 		},
