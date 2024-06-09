@@ -198,7 +198,19 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 
 		{
 			"NOTICE", [&]() -> int {
-				// TODO: notice
+				if (!client.is_valid_client())
+					return (false);
+				const std::string& target = args[1];
+				std::string msg = "";
+				for (unsigned long i = 2; i < args.size(); i++) {
+					msg += (args[i] + " ");
+				}
+				msg = trimWhitespace(msg);
+				auto channel = channels.find(target);
+				if (channel != channels.end())
+					channel->second.echo_privmsg_to_channel(client.get_socket(), RPL_PRIVMSG(client.get_nickname(), target, msg));
+				else
+					return (false);
 				return (true);
 			},
 		},
