@@ -80,7 +80,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 
 		{
-			"TOPIC", [&]() -> int {
+			"TOPIC", [&]() -> int { // FIXME: Implement topic changing.
 				if (args.size() < 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
 				auto channel = channels.find(args[1]);
@@ -150,12 +150,14 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				auto channel = channels.find(args[1]);
 				if (channel != channels.end()) {
 					channel->second.add_client_to_channel(client);
+					client.append_to_messages(RPL_JOIN(client.get_hostmask(), args[1]));
 					std::cout << "Client has been added to channel." << std::endl;
 				}
 				else {
 					channels.insert({args[1], Channel(args[1], "", {})}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
 					auto channel = channels.find(args[1]);
 					channel->second.add_client_to_channel(client);
+					client.append_to_messages(RPL_JOIN(client.get_hostmask(), args[1]));
 					std::cout << "Channel successfully created" << std::endl;
 				}
 				return (true);
@@ -175,7 +177,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (target[0] == '#') { // Target is channel.
 					auto channel = channels.find(target);
 					if (channel != channels.end())
-						channel->second.echo_message_to_channel(RPL_PRIVMSG(client.get_nickname(), target, msg));
+						channel->second.echo_message_to_channel(RPL_PRIVMSG(client.get_hostmask(), target, msg));
 					else
 						throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
 				}

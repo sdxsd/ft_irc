@@ -11,6 +11,7 @@ name(name), password(password), mode(mode) {
 	for (const char& c : "\7 ") // Check for illegal characters within name.
 		if (name.find(c) != std::string::npos)
 			throw std::runtime_error(ERR_BADCHANMASK(std::string("something"), name));
+	topic = "";
 }
 
 std::map<int, Client*>& Channel::clients_in_channel() {
