@@ -136,7 +136,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				for (auto& channel : channels)
 					if (channel.second.is_client_in_channel(client.get_socket()))
 						channel.second.echo_message_to_channel(RPL_QUIT(client.get_hostmask(), msg));
-				disconnect_client(client);
+				client.mark_for_disconnection("Quit");
 				return (false);
 			},
 		},

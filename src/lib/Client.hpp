@@ -20,8 +20,10 @@ class Client {
 		std::queue<std::string>	messages; // Messages waiting to be sent.
 		std::string				recv_buffer; // Appended to until /n is encountered.
 		std::string				send_buffer;
+		std::string				disconnection_reason;
 		bool					registered;
 		bool					password_valid;
+		bool					to_disconnect;
 	public:
 		// === Constructor & Destructor === //
 		Client(int sockfd);
@@ -43,10 +45,14 @@ class Client {
 		const std::string&  get_old_nickname() const;
 		const std::string&	get_hostname() const;
 		const std::string&	get_realname() const;
+		const std::string&	get_disconnect_reason() const;
+		void				mark_for_disconnection(const std::string &reason);
+		unsigned long		messages_queue_size() const;
 		bool				is_registered() const;
 		bool				has_valid_password() const;
 		void				set_password_validity(bool state);
 		bool 				is_valid_client() const;
+		bool				awaiting_disconnect() const;
 };
 
 #endif // CLIENT_HPP

@@ -138,8 +138,14 @@ void Server::run(void) {
 				}
 				else if (pfd.revents & POLLOUT) {
 					auto c = clients.find(pfd.fd);
-					if (c != clients.end())
+					if (c != clients.end()) {
 						c->second.send_message();
+						if (c->second.messages_queue_size() == 0 && c->second.awaiting_disconnect()) {
+							c->second.append_to_messages("ERROR: " + c->second.get_disconnect_reason());
+							c->second.send_message();
+							disconnect_client(c->second);
+						}
+					}
 				}
 			}
 		}

@@ -9,12 +9,19 @@
 
 Client::Client(int sockfd): client_sockfd(sockfd) {
 	nickname = "*"; // * Is often used as a placeholder.
+	disconnection_reason = "";
 	registered = false;
 	password_valid = false;
+	to_disconnect = false;
 }
 
 Client::~Client() {
 	;
+}
+
+void Client::mark_for_disconnection(const std::string& reason) {
+	disconnection_reason = reason;
+	to_disconnect = true;
 }
 
 std::string Client::get_hostmask() const {
@@ -43,6 +50,17 @@ void Client::send_message() {
 	}
 }
 
+unsigned long Client::messages_queue_size() const {
+	return (messages.size());
+}
+
+const std::string& Client::get_disconnect_reason() const {
+	return (disconnection_reason);
+}
+
+bool Client::awaiting_disconnect() const {
+	return (to_disconnect);
+}
 void Client::replyPing(Client &client) {
 	std::cout << "hostname for ping: [" << client.get_hostname() << std::endl;
 	std::string msg = "PONG " + client.get_hostname() + "\r\n";
