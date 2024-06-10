@@ -24,6 +24,8 @@ Server::Server(uint16_t port, const std::string &password): port(port), password
 		std::cerr << "Error initialising socket" << std::endl;
 		exit(1); // TODO: Eventually remove.
 	}
+	int iSetOption = 1;
+	setsockopt(server_sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
 	if (bind(server_sockfd, (sockaddr*)&socket_address, sizeof(socket_address)) == -1) {
 		std::cerr << "Error during binding of socket" << std::endl;
 		close(server_sockfd);
@@ -94,7 +96,6 @@ Client *Server::find_user(const std::string& nick) {
 
 void Server::disconnect_client(Client &client) {
 	std::vector<std::string> channels_to_erase;
-	std::cout << "Client " << client.get_nickname() << " disconnected." << std::endl;
 	close(client.get_socket());
 	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
 		if (it->fd == client.get_socket()) {
@@ -114,6 +115,7 @@ void Server::disconnect_client(Client &client) {
 	for (std::string c : channels_to_erase)
 		channels.erase(c);
 	clients.erase(client.get_socket());
+	std::cout << "Client " << client.get_nickname() << " disconnected." << std::endl;
 }
 
 void Server::run(void) {
