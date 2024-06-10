@@ -93,6 +93,7 @@ Client *Server::find_user(const std::string& nick) {
 }
 
 void Server::disconnect_client(Client &client) {
+	std::vector<std::string> channels_to_erase;
 	std::cout << "Client: " << client.get_nickname() << " disconnected." << std::endl;
 	close(client.get_socket());
 	for (auto it = poll_sockfds.begin(); it != poll_sockfds.end(); it++) {
@@ -107,9 +108,11 @@ void Server::disconnect_client(Client &client) {
 				p.second.demote_user_from_operator(client.get_socket());
 			p.second.remove_client_from_channel(client);
 			if (p.second.clients_in_channel().size() < 1)
-				channels.erase(p.first);
+				channels_to_erase.push_back(p.first);
 		}
 	}
+	for (std::string c : channels_to_erase)
+		channels.erase(c);
 	clients.erase(client.get_socket());
 }
 

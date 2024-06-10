@@ -12,7 +12,7 @@
 #define RPL_PART(source, channel, reason) ":" + source + " PART " + channel + " " + (reason.empty() ? "." : reason) + "\r\n"
 #define RPL_PRIVMSG(source, target, msg) ":" + source + " PRIVMSG " + target + " " + msg + "\r\n"
 #define RPL_NOTICE(source, target, msg) ":" + source + " NOTICE " + target + " " + msg + "\r\n"
-#define RPL_QUIT(source, msg) ":" + source + " QUIT " + msg + "\r\n"
+#define RPL_QUIT(source, msg) ":" + source + " :QUIT: " + msg + "\r\n"
 #define RPL_INVITING(user_id, client, nick, channel) user_id + " 341 " + client + " " + nick + " #" + channel + "\r\n"
 #define RPL_INVITE(user_id, invited, channel) user_id + " INVITE " + invited + " #" + channel + "\r\n"
 #define RPL_KICK(source, channel, target, reason) ":" + source + " KICK " + channel + " " + target + " " + reason + "\r\n"
