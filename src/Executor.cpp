@@ -164,8 +164,12 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				client.append_to_messages(RPL_JOIN(client.get_hostmask(), args[1]));
 				if (channel->second.channel_has_topic())
 					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel->second.get_topic()));
-				for (auto& c : channel->second.clients_in_channel())
-						client.append_to_messages(RPL_NAMREPLY(client.get_nickname(), args[1], (channel->second.is_user_operator(c.first) ? ("@" + c.second->get_nickname()) : c.second->get_nickname())));
+				for (auto& c : channel->second.clients_in_channel()) {
+					std::string nick_and_prefix = "";
+					if (channel->second.is_user_operator(c.first) == true) // Is client operator?
+						nick_and_prefix = ("@" + c.second->get_nickname());
+					client.append_to_messages(RPL_NAMREPLY(client.get_nickname(), args[1], nick_and_prefix));
+				}
 				client.append_to_messages(RPL_ENDOFNAMES(client.get_nickname(), args[1]));
 				return (true);
 			},
