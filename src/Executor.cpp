@@ -144,6 +144,13 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 
 		{
+			"WHOIS", [&]() -> int {
+				// TODO: WHOIS;
+				return (true);
+			}
+		},
+
+		{
 			"NAMES", [&]() -> int {
 				if (args.size() < 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
@@ -156,6 +163,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 						nick_and_prefix = ("@" + c.second->get_nickname());
 					client.append_to_messages(RPL_NAMREPLY(client.get_nickname(), args[1], nick_and_prefix));
 				}
+				client.append_to_messages(RPL_ENDOFNAMES(client.get_nickname(), args[1]));
 				return (true);
 			}
 		},
@@ -185,7 +193,6 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel->second.get_topic()));
 				std::vector<std::string> name_args{"NAMES", args[1]};
 				execute_cmd(name_args, client);
-				client.append_to_messages(RPL_ENDOFNAMES(client.get_nickname(), args[1]));
 				return (true);
 			},
 		},
