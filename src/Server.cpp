@@ -106,6 +106,8 @@ void Server::disconnect_client(Client &client) {
 			if (p.second.is_user_operator(client.get_socket()) == true)
 				p.second.demote_user_from_operator(client.get_socket());
 			p.second.remove_client_from_channel(client);
+			if (p.second.clients_in_channel().size() < 1)
+				channels.erase(p.first);
 		}
 	}
 	clients.erase(client.get_socket());
