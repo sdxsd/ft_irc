@@ -165,8 +165,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (channel->second.channel_has_topic())
 					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel->second.get_topic()));
 				for (auto& c : channel->second.clients_in_channel())
-					if (c.first != client.get_socket())
-						client.append_to_messages(RPL_NAMREPLY(client.get_nickname(), args[1], c.second->get_nickname()));
+						client.append_to_messages(RPL_NAMREPLY(client.get_nickname(), args[1], (channel->second.is_user_operator(c.first) ? ("@" + c.second->get_nickname()) : c.second->get_nickname())));
 				client.append_to_messages(RPL_ENDOFNAMES(client.get_nickname(), args[1]));
 				return (true);
 			},
@@ -257,7 +256,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				std::vector<std::string> forced_part;
 				forced_part.push_back("PART");
 				forced_part.push_back(args[1]);
-				forced_part.push_back(":Forcibly kicked.");
+				forced_part.push_back(":forcibly kicked.");
 				execute_cmd(forced_part, *user); // NOTE: Based or cringe?
 				std::string msg = ":Default Reason";
 				if (args.size() > 3) {

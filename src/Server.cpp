@@ -1,6 +1,5 @@
 #include "lib/Server.hpp"
 #include <cstdlib>
-#include "lib/Replies.hpp"
 #include <iostream>
 #include <cstring>
 #include <stdexcept>

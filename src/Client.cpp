@@ -35,7 +35,7 @@ void Client::clear_recv_buffer() {
 
 void Client::send_message() {
 	if (!messages.empty()) {
-		const std::string message = messages.top();
+		const std::string message = messages.front();
 		if (send(client_sockfd, message.c_str(), message.length(), 0) != -1) {
 			std::cout << "To client: " << message << std::endl;
 			messages.pop();

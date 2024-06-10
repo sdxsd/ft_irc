@@ -1,7 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include <stack>
+#include <queue>
 #include <string>
 #include <vector>
 
@@ -17,7 +17,7 @@ class Client {
 		std::string				hostname;
 		std::string				realname;
 		std::string				servername;
-		std::stack<std::string>	messages; // Messages waiting to be sent.
+		std::queue<std::string>	messages; // Messages waiting to be sent.
 		std::string				recv_buffer; // Appended to until /n is encountered.
 		std::string				send_buffer;
 		bool					registered;
