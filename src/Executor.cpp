@@ -159,6 +159,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					std::string nick_and_prefix = "";
 					if (channel->second.is_user_operator(c.first) == true) // Is client operator?
 						nick_and_prefix = ("@" + c.second->get_nickname());
+					else
+						nick_and_prefix = client.get_nickname();
 					client.append_to_messages(RPL_NAMREPLY(client.get_nickname(), args[1], nick_and_prefix));
 				}
 				client.append_to_messages(RPL_ENDOFNAMES(client.get_nickname(), args[1]));
