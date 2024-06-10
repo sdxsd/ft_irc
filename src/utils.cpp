@@ -26,3 +26,14 @@ std::vector<std::string> *split(const std::string& str, const std::string& delim
 		last[pos] = '\0';
 	return strings;
 }
+
+std::string validate_modestring(const std::string& modestring, bool target_is_user) {
+	std::string invalid_chars = "";
+	static const std::string valid_modes = "itkol";
+	if (modestring[0] != '-' || modestring[0] != '+')
+		invalid_chars += modestring[0];
+	for (int i = 1; i < modestring.size(); i++)
+		if (valid_modes.find(modestring[i]) == std::string::npos)
+			invalid_chars += modestring[i];
+	return (invalid_chars);
+}
