@@ -124,6 +124,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				else
 					channel->second.echo_message_to_channel(RPL_PART(client.get_hostmask(), args[1], reason));
 				channel->second.remove_client_from_channel(client);
+				if (channel->second.clients_in_channel().size() < 1)
+					channels.erase(args[1]);
 				return (true);
 			},
 		},

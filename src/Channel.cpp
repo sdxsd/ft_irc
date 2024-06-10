@@ -36,10 +36,7 @@ void Channel::add_client_to_channel(Client& client) {
 }
 
 void Channel::remove_client_from_channel(const Client& client) {
-	if (is_client_in_channel(client.get_socket()))
-		clients.erase(client.get_socket());
-	// else
-	// 	; // TODO: Throw error.
+	clients.erase(client.get_socket());
 }
 
 void Channel::echo_privmsg_to_channel(int sender_fd, const std::string& msg) {
