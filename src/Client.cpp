@@ -37,7 +37,7 @@ void Client::send_message() {
 	if (!messages.empty()) {
 		const std::string message = messages.front();
 		if (send(client_sockfd, message.c_str(), message.length(), 0) != -1) {
-			std::cout << "To client: " << message << std::endl;
+			std::cout << "To " << nickname << ": "  << message << std::endl;
 			messages.pop();
 		}
 	}

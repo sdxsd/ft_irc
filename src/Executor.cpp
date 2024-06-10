@@ -133,10 +133,9 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		{
 			"QUIT", [&]() -> int {
 				std::string msg = (args.size() > 1) ? args[1] : "";
-				for (auto& channel : channels) {
+				for (auto& channel : channels)
 					if (channel.second.is_client_in_channel(client.get_socket()))
 						channel.second.echo_message_to_channel(RPL_QUIT(client.get_hostmask(), msg));
-				}
 				disconnect_client(client);
 				return (false);
 			},
@@ -178,7 +177,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				auto channel = channels.find(args[1]);
 				if (channel != channels.end()) {
 					channel->second.add_client_to_channel(client);
-					std::cout << "Client has been added to channel." << std::endl;
+					std::cout << "Client " << client.get_nickname() << " has been added to channel." << std::endl;
 				}
 				else {
 					auto new_channel = channels.insert({args[1], Channel(args[1], "", {})}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
@@ -187,7 +186,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					channel->second.promote_user_to_operator(client.get_socket());
 					std::cout << "Channel successfully created" << std::endl;
 				}
-				client.append_to_messages(RPL_JOIN(client.get_hostmask(), args[1]));
+				channel->second.echo_message_to_channel(RPL_JOIN(client.get_hostmask(), args[1]));
 				if (channel->second.channel_has_topic())
 					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel->second.get_topic()));
 				std::vector<std::string> name_args{"NAMES", args[1]};
@@ -301,7 +300,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 	};
 	auto command = command_map.find(args[0]);
 	if (command != command_map.end()) {
-		std::cout << "Client invoked: " << args[0] << std::endl;
+		std::cout << "Client " << client.get_nickname() << " invoked: " << args[0] << std::endl;
 		return (command->second());
 	}
 	else
