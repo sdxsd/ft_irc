@@ -27,6 +27,7 @@
 #define ERR_ALREADYREGISTERED(source) "462 " + source + " :You may not reregister\r\n"
 #define ERR_PASSWDMISMATCH(source) "464 " + source + " :Password incorrect\r\n"
 #define ERR_NONICKNAMEGIVEN(source) "431 " + source + " :Nickname not given\r\n"
+#define ERR_UMODEUNKNOWNFLAG(client) "501 " + client + " :Unknown MODE flag\r\n"
 #define ERR_ERRONEUSNICKNAME(source, nickname) "432 " + source + " " + nickname + " :Erroneous nickname\r\n"
 #define ERR_NICKNAMEINUSE(source, nickname) "433 " + source + " " + nickname + " :Nickname is already in use\r\n"
 #define ERR_TOOMANYCHANNELS(source, channel) "405 " + source + " " + channel + " :You have joined too many channels\r\n"
