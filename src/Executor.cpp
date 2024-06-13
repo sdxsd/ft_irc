@@ -175,7 +175,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					std::cout << "Client " << client.get_nickname() << " has been added to channel." << std::endl;
 				}
 				else {
-					auto new_channel = channels.insert({args[1], Channel(args[1], "", {})}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
+					auto new_channel = channels.insert({args[1], Channel(args[1])}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
 					channel = new_channel.first; // FIXME: Check if channel was actually inserted (new_channel contains a bool)
 					channel->second.add_client_to_channel(client);
 					channel->second.promote_user_to_operator(client.get_socket());
@@ -306,6 +306,32 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				Channel& channel = find_channel(client.get_nickname(), args[1]);
 				if (args.size() < 3) // NOTE: No modestring given, send the client the channels modes.
 					client.append_to_messages(RPL_CHANNELMODEIS(client.get_nickname(), args[1], channel.get_mode()));
+				else {
+					if (!(channel.is_user_operator(client.get_socket())))
+						throw std::runtime_error(ERR_CHANOPRIVSNEEDED(client.get_nickname(), args[1]));
+					bool state;
+					if (args[2][0] == '+')
+						state = true;
+					else if (args[2][0] == '-')
+						state = false;
+					else
+						return (false);
+					if (args[2][1] == 'i') {
+						;
+					}
+					else if (args[2][1] == 't') {
+						;
+					}
+					else if (args[2][1] == 'k') {
+						;
+					}
+					else if (args[2][1] == 'o') {
+						;
+					}
+					else if (args[2][1] == 'l') {
+						;
+					}
+				}
 				return (true);
 			}
 		},
