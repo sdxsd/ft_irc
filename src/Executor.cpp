@@ -250,6 +250,28 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 
 		{
+			"WHO", [&]() -> int {
+				if (args.size() < 2)
+					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+				std::string& target = args[1];
+				if (target[0] != '#') {
+					Client& user = find_user(client.get_nickname(), target);
+					std::string reply = RPL_WHOREPLY(client.get_nickname(), "*", user.get_username(), user.get_hostname(), user.get_servername(), user.get_nickname(), user.get_realname());
+					client.append_to_messages(reply);
+				}
+				else {
+					Channel& channel = find_channel(client.get_nickname(), target);
+					for (auto &c : channel.clients_in_channel()) {
+						Client& user = *c.second;
+						client.append_to_messages(RPL_WHOREPLY(client.get_nickname(), "*", user.get_username(), user.get_hostname(), user.get_servername(), user.get_nickname(), user.get_realname()));
+					}
+				}
+				client.append_to_messages(RPL_ENDOFWHO(client.get_nickname(), target));
+				return (true);
+			},
+		},
+
+		{
 			"KICK", [&]() -> int {
 				if (args.size() < 3)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
@@ -270,23 +292,22 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 						msg += args[1] + " ";
 					msg = trimWhitespace(msg);
 				}
-				channel->second.echo_message_to_channel(RPL_KICK(client.get_nickname(), args[1], args[2], msg));
+				channel.echo_message_to_channel(RPL_KICK(client.get_nickname(), args[1], args[2], msg));
 				return (true);
 			},
 		},
 
 		{
-			"MODE", [&]() -> int { // NOTE: WE DON'T SUPPORT USER MODES.
-				bool state; // NOTE: false = disable / true = enable.
+			"MODE", [&]() -> int {
 				if (args.size() < 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
 				if (args[1][0] != '#')
-					throw std::runtime_error(ERR_UMODEUNKNOWNFLAG(client.get_nickname()));
+					return (true);
 				Channel& channel = find_channel(client.get_nickname(), args[1]);
-				if (args.size() < 3) { // NOTE: No modestring given, send the client the channels modes.
-
-				}
-			},
+				if (args.size() < 3) // NOTE: No modestring given, send the client the channels modes.
+					client.append_to_messages(RPL_CHANNELMODEIS(client.get_nickname(), args[1], channel.get_mode()));
+				return (true);
+			}
 		},
 	};
 	auto command = command_map.find(args[0]);

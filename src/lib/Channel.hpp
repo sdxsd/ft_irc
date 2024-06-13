@@ -14,12 +14,18 @@ class Client;
 class Channel {
 	private:
 		const std::string			name;
-		std::string					topic;
 		std::string					password;
 		std::map<int, Client*>		clients;
 		std::vector<int>			operators;
 		std::vector<std::string>	messages;
 		std::map<char, bool>		mode;
+		// === MODE DATA === //
+		// Pairing of the state of the mode and the data it is associated with.
+		std::pair<bool, std::vector<std::string>>	invite_only; // NOTE: Vector contains invite list.
+		std::pair<bool, std::string> 				password_protected;
+		std::pair<bool, std::string> 				topic;
+		std::pair<bool, int> 						user_limit;
+
 	public:
 		Channel(const std::string &name, const std::string& password, std::map<char, bool> mode);
 		bool						is_client_in_channel(int client_sockfd);
@@ -33,6 +39,7 @@ class Channel {
 		void						promote_user_to_operator(int fd);
 		void						demote_user_from_operator(int fd);
 		void						set_topic(const std::string& text);
+		std::string					get_mode() const;
 		const std::string&			get_topic() const;
 		bool						channel_has_topic();
 };
