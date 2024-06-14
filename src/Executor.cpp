@@ -1,7 +1,6 @@
 #include "lib/Server.hpp"
 #include "lib/Replies.hpp"
 #include "lib/utils.hpp"
-#include <cstddef>
 #include <functional>
 #include <stdexcept>
 #include <iostream>
@@ -82,13 +81,11 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"TOPIC", [&]() -> int { // FIXME: Implement topic changing.
 				if (args.size() < 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-				auto channel = channels.find(args[1]);
-				if (channel == channels.end())
-					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
-				if (!(channel->second.is_client_in_channel(client.get_socket())))
+				Channel& channel = find_channel(client.get_nickname(), args[1]);
+				if (!(channel.is_client_in_channel(client.get_socket())))
 					throw std::runtime_error(ERR_NOTONCHANNEL(client.get_nickname(), args[1]));
-				if (channel->second.channel_has_topic())
-					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel->second.get_topic()));
+				if (channel.channel_has_topic())
+					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel.get_topic()));
 				else
 					client.append_to_messages(RPL_NOTOPIC(client.get_nickname(), args[1]));
 				return (true);
@@ -108,22 +105,20 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
 				if (args[1][0] != '#')
 					throw std::runtime_error(ERR_BADCHANMASK(client.get_nickname(), args[1]));
-				auto channel = channels.find(args[1]);
-				if (channel == channels.end())
-					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
-				if (!(channel->second.is_client_in_channel(client.get_socket())))
+				Channel& channel = find_channel(client.get_nickname(), args[1]);
+				if (!(channel.is_client_in_channel(client.get_socket())))
 					throw std::runtime_error(ERR_NOTONCHANNEL(client.get_nickname(), args[1]));
 				std::string reason = "";
 				if (args.size() > 2) {
 					for (unsigned long i = 2; i < args.size(); i++)
 						reason += (args[i] + " ");
 					reason = trimWhitespace(reason);
-					channel->second.echo_message_to_channel(RPL_PART(client.get_hostmask(), args[1], reason));
+					channel.echo_message_to_channel(RPL_PART(client.get_hostmask(), args[1], reason));
 				}
 				else
-					channel->second.echo_message_to_channel(RPL_PART(client.get_hostmask(), args[1], reason));
-				channel->second.remove_client_from_channel(client);
-				if (channel->second.clients_in_channel().size() < 1)
+					channel.echo_message_to_channel(RPL_PART(client.get_hostmask(), args[1], reason));
+				channel.remove_client_from_channel(client);
+				if (channel.clients_in_channel().size() < 1)
 					channels.erase(args[1]);
 				return (true);
 			},
@@ -163,12 +158,10 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"NAMES", [&]() -> int {
 				if (args.size() < 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-				auto channel = channels.find(args[1]);
-				if (channel == channels.end())
-					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
-				for (auto& c : channel->second.clients_in_channel()) {
+				Channel& channel = find_channel(client.get_nickname(), args[1]);
+				for (auto& c : channel.clients_in_channel()) {
 					std::string nick_and_prefix = "";
-					if (channel->second.is_user_operator(c.first) == true) // Is client operator?
+					if (channel.is_user_operator(c.first) == true) // Is client operator?
 						nick_and_prefix = ("@" + c.second->get_nickname());
 					else
 						nick_and_prefix = client.get_nickname();
@@ -193,7 +186,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					std::cout << "Client " << client.get_nickname() << " has been added to channel." << std::endl;
 				}
 				else {
-					auto new_channel = channels.insert({args[1], Channel(args[1], "", {})}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
+					auto new_channel = channels.insert({args[1], Channel(args[1])}); // TODO: MAKE SURE MODE IS NOT FUCKING EMPTY.
 					channel = new_channel.first; // FIXME: Check if channel was actually inserted (new_channel contains a bool)
 					channel->second.add_client_to_channel(client);
 					channel->second.promote_user_to_operator(client.get_socket());
@@ -219,17 +212,12 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				}
 				msg = trimWhitespace(msg);
 				if (target[0] == '#') { // Target is channel.
-					auto channel = channels.find(target);
-					if (channel != channels.end())
-						channel->second.echo_privmsg_to_channel(client.get_socket(), RPL_PRIVMSG(client.get_nickname(), target, msg));
-					else
-						throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
+					Channel& channel = find_channel(client.get_nickname(), args[1]);
+					channel.echo_privmsg_to_channel(client.get_socket(), RPL_PRIVMSG(client.get_nickname(), target, msg));
 				}
 				else { // Sending to user.
-					Client *receiver = find_user(target);
-					if (receiver == NULL)
-						throw std::runtime_error(ERR_NOSUCHNICK(client.get_nickname(), target));
-					receiver->append_to_messages(RPL_PRIVMSG(client.get_nickname(), target, msg));
+					Client& receiver = find_user(client.get_nickname(), target);
+					receiver.append_to_messages(RPL_PRIVMSG(client.get_nickname(), target, msg));
 				}
 				return (true);
 			},
@@ -258,20 +246,38 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"INVITE", [&]() -> int {
 				if (args.size() < 3)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-				auto channel = channels.find(args[2]);
-				if (channel == channels.end())
-					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[2]));
-				if (!channel->second.is_client_in_channel(client.get_socket()))
+				Channel& channel = find_channel(client.get_nickname(), args[2]);
+				if (!channel.is_client_in_channel(client.get_socket()))
 					throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), client.get_nickname(), args[2]));
-				Client *user = find_user(args[1]);
-				if (user == NULL)
-					throw std::runtime_error(ERR_NOSUCHNICK(client.get_nickname(), args[1]));
-				if (channel->second.is_client_in_channel(user->get_socket()))
+				Client& user = find_user(client.get_nickname(), args[1]);
+				if (channel.is_client_in_channel(user.get_socket()))
 					throw std::runtime_error(ERR_USERONCHANNEL(client.get_nickname(), args[1], args[2]));
-				if (!channel->second.is_user_operator(client.get_socket()))
+				if (!channel.is_user_operator(client.get_socket()))
 					throw std::runtime_error(ERR_CHANOPRIVSNEEDED(client.get_nickname(), args[2]));
-				client.append_to_messages(RPL_INVITING(client.get_hostmask(), client.get_nickname(), user->get_nickname(), args[2]));
-				user->append_to_messages(RPL_INVITE(client.get_hostmask(), user->get_nickname(), args[2]));
+				client.append_to_messages(RPL_INVITING(client.get_hostmask(), client.get_nickname(), user.get_nickname(), args[2]));
+				user.append_to_messages(RPL_INVITE(client.get_hostmask(), user.get_nickname(), args[2]));
+				return (true);
+			},
+		},
+
+		{
+			"WHO", [&]() -> int {
+				if (args.size() < 2)
+					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+				std::string& target = args[1];
+				if (target[0] != '#') {
+					Client& user = find_user(client.get_nickname(), target);
+					std::string reply = RPL_WHOREPLY(client.get_nickname(), "*", user.get_username(), user.get_hostname(), user.get_servername(), user.get_nickname(), user.get_realname());
+					client.append_to_messages(reply);
+				}
+				else {
+					Channel& channel = find_channel(client.get_nickname(), target);
+					for (auto &c : channel.clients_in_channel()) {
+						Client& user = *c.second;
+						client.append_to_messages(RPL_WHOREPLY(client.get_nickname(), "*", user.get_username(), user.get_hostname(), user.get_servername(), user.get_nickname(), user.get_realname()));
+					}
+				}
+				client.append_to_messages(RPL_ENDOFWHO(client.get_nickname(), target));
 				return (true);
 			},
 		},
@@ -280,18 +286,16 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"KICK", [&]() -> int {
 				if (args.size() < 3)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-				auto channel = channels.find(args[1]);
-				if (channel == channels.end())
-					throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
-				if (!channel->second.is_client_in_channel(client.get_socket()))
+				Channel& channel = find_channel(client.get_nickname(), args[1]);
+				if (!channel.is_client_in_channel(client.get_socket()))
 					throw std::runtime_error(ERR_NOTONCHANNEL(client.get_nickname(), args[1]));
-				Client *user = find_user(args[2]);
-				if (user == NULL || !channel->second.is_client_in_channel(user->get_socket()))
+				Client& user = find_user(client.get_nickname(), args[2]);
+				if (!channel.is_client_in_channel(user.get_socket()))
 					throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), args[2], args[1]));
-				if (!channel->second.is_user_operator(client.get_socket()))
+				if (!channel.is_user_operator(client.get_socket()))
 					throw std::runtime_error(ERR_CHANOPRIVSNEEDED(client.get_nickname(), args[1]));
 				std::vector<std::string> forced_part{"PART", args[1], ":forcibly kicked"};
-				execute_cmd(forced_part, *user); // NOTE: Based or cringe?
+				execute_cmd(forced_part, user); // NOTE: Based or cringe?
 				std::string msg = ":Default Reason";
 				if (args.size() > 3) {
 					msg.clear();
@@ -299,16 +303,48 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 						msg += args[1] + " ";
 					msg = trimWhitespace(msg);
 				}
-				channel->second.echo_message_to_channel(RPL_KICK(client.get_nickname(), args[1], args[2], msg));
+				channel.echo_message_to_channel(RPL_KICK(client.get_nickname(), args[1], args[2], msg));
 				return (true);
 			},
 		},
 
 		{
 			"MODE", [&]() -> int {
-				// TODO: mode
+				if (args.size() < 2)
+					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+				if (args[1][0] != '#')
+					return (true);
+				Channel& channel = find_channel(client.get_nickname(), args[1]);
+				if (args.size() < 3) // NOTE: No modestring given, send the client the channels modes.
+					client.append_to_messages(RPL_CHANNELMODEIS(client.get_nickname(), args[1], channel.get_mode()));
+				else {
+					if (!(channel.is_user_operator(client.get_socket())))
+						throw std::runtime_error(ERR_CHANOPRIVSNEEDED(client.get_nickname(), args[1]));
+					bool state;
+					if (args[2][0] == '+')
+						state = true;
+					else if (args[2][0] == '-')
+						state = false;
+					else
+						return (false);
+					if (args[2][1] == 'i') {
+						;
+					}
+					else if (args[2][1] == 't') {
+						;
+					}
+					else if (args[2][1] == 'k') {
+						;
+					}
+					else if (args[2][1] == 'o') {
+						;
+					}
+					else if (args[2][1] == 'l') {
+						;
+					}
+				}
 				return (true);
-			},
+			}
 		},
 	};
 	auto command = command_map.find(args[0]);

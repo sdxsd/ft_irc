@@ -4,14 +4,15 @@
 #include <algorithm>
 #include <stdexcept>
 
-Channel::Channel(const std::string &name, const std::string& password, std::map<char, bool> mode):
-name(name), password(password), mode(mode) {
+Channel::Channel(const std::string &name):
+name(name) {
 	if (name[0] != '#')
 		throw std::runtime_error(ERR_BADCHANMASK(std::string("something"), name));
 	for (const char& c : "\7 ") // Check for illegal characters within name.
 		if (name.find(c) != std::string::npos)
 			throw std::runtime_error(ERR_BADCHANMASK(std::string("something"), name));
-	topic = "";
+	password_protected.second = "";
+	topic.second = "";
 }
 
 std::map<int, Client*>& Channel::clients_in_channel() {
@@ -31,12 +32,25 @@ void Channel::add_client_to_channel(Client& client) {
 		clients.insert({client.get_socket(), &client});
 		std::cout << "Added client: " << client.get_nickname() << " To: " << name << std::endl;
 	}
-	// else
-	// 	throw std::runtime_error(ERR_); // TODO: Add error for when client attempts to join channel they are in.
+	else
+		throw std::runtime_error(ERR_USERONCHANNEL(client.get_nickname(), client.get_nickname(), name));
 }
 
 void Channel::remove_client_from_channel(const Client& client) {
 	clients.erase(client.get_socket());
+}
+
+std::string Channel::get_mode() const {
+	std::string modestring = "+";
+	if (invite_only.first)
+		modestring += 'i';
+	if (password_protected.first)
+		modestring += 'k';
+	if (topic.first)
+		modestring += 't';
+	if (user_limit.first)
+		modestring += 'l';
+	return (modestring);
 }
 
 void Channel::echo_privmsg_to_channel(int sender_fd, const std::string& msg) {
@@ -68,15 +82,15 @@ void Channel::demote_user_from_operator(int fd) {
 }
 
 void Channel::set_topic(const std::string& text) {
-	topic = text;
+	topic.second = text;
 }
 
 const std::string& Channel::get_topic() const {
-	return (topic);
+	return (topic.second);
 }
 
 bool Channel::channel_has_topic() {
-	if (topic.empty())
+	if (topic.second.empty())
 		return (false);
 	return (true);
 }

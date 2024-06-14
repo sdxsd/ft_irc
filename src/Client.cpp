@@ -24,6 +24,10 @@ void Client::mark_for_disconnection(const std::string& reason) {
 	to_disconnect = true;
 }
 
+const std::string&	Client::get_servername() const {
+	return (servername);
+}
+
 std::string Client::get_hostmask() const {
 	return (nickname + "!" + username + "@" + hostname);
 }
@@ -104,7 +108,7 @@ void Client::register_client(std::vector<std::string> &args) {
 	servername = args[3];
 	realname = "";
 	for (unsigned long i = 4; i < args.size(); i++)
-		realname += args[i];
+		realname += (args[i] + " ");
 	realname = trimWhitespace(realname);
 	registered = true;
 }

@@ -45,6 +45,7 @@ class Client {
 		const std::string&  get_old_nickname() const;
 		const std::string&	get_hostname() const;
 		const std::string&	get_realname() const;
+		const std::string&	get_servername() const;
 		const std::string&	get_disconnect_reason() const;
 		void				mark_for_disconnection(const std::string &reason);
 		unsigned long		messages_queue_size() const;

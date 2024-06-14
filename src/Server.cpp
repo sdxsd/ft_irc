@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <map>
 #include <utility>
+#include "lib/Replies.hpp"
 #include "lib/utils.hpp"
 
 Server::Server(uint16_t port, const std::string &password): port(port), password(password)  {
@@ -86,12 +87,11 @@ void Server::handle_client(Client& client) {
 	// 	client.append_to_recv_buffer(buf_string);
 }
 
-Client *Server::find_user(const std::string& nick) {
-	for (auto& c : clients) {
+Client &Server::find_user(const std::string& sender_nick, const std::string& nick) {
+	for (auto& c : clients)
 		if (c.second.get_nickname() == nick)
-			return (&c.second);
-	}
-	return (NULL);
+			return (c.second);
+	throw std::runtime_error(ERR_NOSUCHNICK(sender_nick, nick));
 }
 
 void Server::disconnect_client(Client &client) {
@@ -114,8 +114,15 @@ void Server::disconnect_client(Client &client) {
 	}
 	for (std::string c : channels_to_erase)
 		channels.erase(c);
-	clients.erase(client.get_socket());
 	std::cout << "Client " << client.get_nickname() << " disconnected." << std::endl;
+	clients.erase(client.get_socket());
+}
+
+Channel& Server::find_channel(const std::string& nick, const std::string& channel_name) {
+	auto channel = channels.find(channel_name);
+	if (channel == channels.end())
+		throw std::runtime_error(ERR_NOSUCHCHANNEL(nick, channel_name));
+	return (channel->second);
 }
 
 void Server::run(void) {
