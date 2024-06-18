@@ -23,6 +23,8 @@
 #define RPL_TRYAGAIN(source, nickname) "263 " + source + " :Nickname " + nickname + " is already in use, please try again\r\n"
 #define RPL_WHOREPLY(client, channel, username, host, server, nick, realname) "352 " + client + " " + channel + " " + username + " " + host + " " + server + " " + nick + " H " + realname + "\r\n"
 #define RPL_ENDOFWHO(client, target) "315 " + client + " " + target + " :End of WHO list\r\n"
+#define RPL_ENDOFBANLIST(source, channel) "368 " + source + " " + channel + " :End of channel ban list\r\n"
+#define RPL_YOUREOPER(client) "381 " + client + " :You are now an IRC operator\r\n"
 #define RPL_CHANNELMODEIS(client, channel, mode) "324 " + client + " " + channel + " " + mode + "\r\n"
 #define ERR_UNKNOWNCOMMAND(source, command) "421 " + source + " " + command + " :Unknown command\r\n"
 #define ERR_NEEDMOREPARAMS(source, command) "461 " + source + " " + command + " :Not enough parameters\r\n"
@@ -35,7 +37,7 @@
 #define ERR_NICKNAMEINUSE(source, nickname) "433 " + source + " " + nickname + " :Nickname is already in use\r\n"
 #define ERR_TOOMANYCHANNELS(source, channel) "405 " + source + " " + channel + " :You have joined too many channels\r\n"
 #define ERR_NOTONCHANNEL(source, channel) "442 " + source + " " + channel + " :You're not on that channel\r\n"
-#define ERR_BADCHANNELKEY(source, channel) "475 " + source + " " + channel + " :Cannot clientJoinChannel channel (+k)\r\n"
+#define ERR_BADCHANNELKEY(source, channel) "475 " + source + " " + channel + " :Cannot join channel (+k)\r\n"
 #define ERR_BADCHANMASK(source, channel) ":" + source + " 476 " + channel + " :Invalid Channel Mask\r\n"
 #define ERR_NOSUCHCHANNEL(source, channel) "403 " + source + " " + channel + " :No such channel\r\n"
 #define ERR_NOSUCHNICK(source, nickname) "401 " + source + " " + nickname + " :No such nickname\r\n"
@@ -46,5 +48,6 @@
 #define ERR_CANNOTSENDTOCHAN(source, channel) "404 " + source + " " + channel + " :Cannot send to channel\r\n"
 #define ERR_INVITEONLYCHAN(source, channel) "473 " + source + " " + channel + " :Channel is invite only, couldnt join\r\n"
 #define ERR_BANNEDFROMCHAN(source, channel) "474 "  + source + " " + channel + " :You are banned from this server, creep\r\n"
+#define ERR_INVALIDKEY(client, channel) "525 " + client + " " + channel + " :Key is not well-formed\r\n"
 
 #endif

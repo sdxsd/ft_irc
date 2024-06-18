@@ -37,6 +37,10 @@ class Channel {
 		void						promote_user_to_operator(int fd);
 		void						demote_user_from_operator(int fd);
 		void						set_topic(const std::string& text);
+		void						disable_key();
+		void						enable_key(const std::string& key);
+		bool						is_key_required();
+		bool 						validate_key(const std::string& key);
 		std::string					get_mode() const;
 		const std::string&			get_topic() const;
 		bool						channel_has_topic();

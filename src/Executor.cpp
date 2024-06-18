@@ -171,6 +171,9 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					throw std::runtime_error(ERR_NOTREGISTERED(client.get_nickname()));
 				auto channel = channels.find(args[1]);
 				if (channel != channels.end()) {
+					if (channel->second.is_key_required() == true)
+						if (args.size() < 3 || channel->second.validate_key(args[2]) == false)
+							throw std::runtime_error(ERR_BADCHANNELKEY(client.get_nickname(), args[1]));
 					channel->second.add_client_to_channel(client);
 					std::cout << "Client " << client.get_nickname() << " has been added to channel." << std::endl;
 				}
@@ -307,6 +310,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				if (args.size() < 3) // NOTE: No modestring given, send the client the channels modes.
 					client.append_to_messages(RPL_CHANNELMODEIS(client.get_nickname(), args[1], channel.get_mode()));
 				else {
+					if (args[2] == "b")
+						throw std::runtime_error(RPL_ENDOFBANLIST(client.get_nickname(), args[1]));
 					if (!(channel.is_user_operator(client.get_socket())))
 						throw std::runtime_error(ERR_CHANOPRIVSNEEDED(client.get_nickname(), args[1]));
 					bool state;
@@ -323,10 +328,36 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 						;
 					}
 					else if (args[2][1] == 'k') {
-						;
+						if (state) {
+							if (args.size() < 4)
+								throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+							if (args[3].find(' ') != std::string::npos)
+								throw std::runtime_error(ERR_INVALIDKEY(client.get_nickname(), args[3]));
+							channel.enable_key(args[3]);
+						}
+						else
+							channel.disable_key();
 					}
 					else if (args[2][1] == 'o') {
-						;
+						if (state) {
+							if (args.size() < 4)
+								throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+							Client& user = find_user(client.get_nickname(), args[3]);
+							if (!channel.is_client_in_channel(user.get_socket()))
+								throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), user.get_nickname(), args[1]));
+							channel.promote_user_to_operator(user.get_socket());
+							user.append_to_messages(RPL_YOUREOPER(user.get_nickname()));
+						}
+						else {
+							if (args.size() < 4)
+								throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+							Client& user = find_user(client.get_nickname(), args[3]);
+							if (!channel.is_client_in_channel(user.get_socket()))
+								throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), user.get_nickname(), args[1]));
+							if (!channel.is_user_operator(user.get_socket()))
+								return (true);
+							channel.demote_user_from_operator(user.get_socket());
+						}
 					}
 					else if (args[2][1] == 'l') {
 						;
