@@ -339,21 +339,18 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 							channel.disable_key();
 					}
 					else if (args[2][1] == 'o') {
+						if (args.size() < 4)
+							throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+						Client& user = find_user(client.get_nickname(), args[3]);
+						if (!channel.is_client_in_channel(user.get_socket()))
+							throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), user.get_nickname(), args[1]));
 						if (state) {
-							if (args.size() < 4)
-								throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-							Client& user = find_user(client.get_nickname(), args[3]);
-							if (!channel.is_client_in_channel(user.get_socket()))
-								throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), user.get_nickname(), args[1]));
+							if (channel.is_user_operator(user.get_socket()))
+								return (true);
 							channel.promote_user_to_operator(user.get_socket());
 							user.append_to_messages(RPL_YOUREOPER(user.get_nickname()));
 						}
 						else {
-							if (args.size() < 4)
-								throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-							Client& user = find_user(client.get_nickname(), args[3]);
-							if (!channel.is_client_in_channel(user.get_socket()))
-								throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), user.get_nickname(), args[1]));
 							if (!channel.is_user_operator(user.get_socket()))
 								return (true);
 							channel.demote_user_from_operator(user.get_socket());
