@@ -45,6 +45,7 @@
 #define ERR_CHANNELISFULL(source, channel) "471 " + source + " " + channel + " :Cannot clientJoinChannel channel (+l)\r\n"
 #define ERR_CANNOTSENDTOCHAN(source, channel) "404 " + source + " " + channel + " :Cannot send to channel\r\n"
 #define ERR_INVITEONLYCHAN(source, channel) "473 " + source + " " + channel + " :Channel is invite only, couldnt join\r\n"
-#define ERR_BANNEDFROMCHAN(source, channel) "474 "  + source + " " + channel + " :You are banned from this server, creep\r\n"
+#define ERR_BANNEDFROMCHAN(source, channel) "474 " + source + " " + channel + " :You are banned from this server, creep\r\n"
+#define ERR_ENDOFBANLIST(source, channel) "368 " + source + " " + channel + " :End of channel ban list\r\n"
 
 #endif
