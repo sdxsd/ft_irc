@@ -29,7 +29,18 @@ int	check_input(int count, char *prog, char *port, char *pwd){
 		std::cerr << "Usage: " << prog << " <PORT> <PASSWORD>" << std::endl;
 		return (0);
 	}
-	uint16_t port_i = std::stoi(port);
+	uint16_t port_i = 0;
+	try {
+		port_i = std::stoi(port);
+	}
+	catch (std::invalid_argument& e) {
+		std::cerr << "invalid argument" <<  std::endl;
+		return 0;
+	}
+	catch (std::out_of_range& e){
+		std::cerr << "port value out of range" <<  std::endl;
+		return 0;
+	};
 	std::string pwd_str = get_string(pwd);
 	if ((port_i > 0 && port_i <= 1023) || port_i > 10000){
 		std::cerr << "This port is not allowed, please try again"  << std::endl;

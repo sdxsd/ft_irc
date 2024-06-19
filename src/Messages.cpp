@@ -11,7 +11,7 @@ std::map<std::string, std::function<std::string(std::string)>> init_message_db(v
 			}
 		},
 		{
-
+			
 		}
 	};
 }

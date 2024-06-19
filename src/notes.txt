@@ -1,0 +1,10 @@
+ISSUES: 
+
+- "Irssi: critical nicklist_set_host: assertion 'host != NULL' failed"
+
+
+- after setting a user to be an operator in a channel, the message does not get sent to the channel (not sure if this is a problem)
+- the message confirming user is an operator does not specify the channel.
+- /names still does not update properly after user is made operator.
+
+

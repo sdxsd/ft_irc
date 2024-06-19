@@ -148,25 +148,6 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			},
 		},
 
-		// {
-		// 	"WHOIS", [&]() -> int {
-		// 		if (args.size() < 2 || args.size() > 3)
-		// 			throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-		// 		//std::cout << "Whois " << args[0] << args [1] << std::endl;
-		// 		if (args[1][0] == '#'){
-		// 			auto channel = channels.find(args[1]);
-		// 			if (channel != channels.end())
-		// 				client.append_to_messages(RPL_MYINFO())
-		// 		else if (args.size() == 2)
-		// 			if ()
-		// 		else
-		// 			throw std::runtime_error(ERR_NOSUCHCHANNEL(client.get_nickname(), args[1]));
-		// 		}
-		// 		// TODO: WHOIS;
-		// 		return (true);
-		// 	}
-		// },
-
 		{
 			"NAMES", [&]() -> int {
 				if (args.size() < 2)
