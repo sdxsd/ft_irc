@@ -40,6 +40,10 @@ class Channel {
 		void						disable_key();
 		void						enable_key(const std::string& key);
 		bool						is_key_required();
+		int							get_user_limit();
+		void						set_user_limit(int user);
+		void						remove_user_limit();
+		bool						user_limit_set();
 		bool 						validate_key(const std::string& key);
 		std::string					get_mode() const;
 		const std::string&			get_topic() const;

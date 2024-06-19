@@ -4,10 +4,10 @@
 if [ "$(uname)" = "Darwin" ]; then
 	IRC_SERVER=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')
 else
-	IRC_SERVER=$(hostname -I | awk '{print $1}')
+	IRC_SERVER=$(hostname -i | awk '{print $1}')
 fi
 PORT=6667
-PASSWORD="password"
+PASSWORD="p"
 USER1="OthelloNC"
 USER2="OtheNetCat"
 NICK="OthNC"

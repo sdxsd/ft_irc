@@ -37,3 +37,36 @@ std::string validate_modestring(const std::string& modestring) {
 			invalid_chars += modestring[i];
 	return (invalid_chars);
 }
+
+bool last_contains_delimiter(const std::string& str, const std::string &delimiter) {
+	if ((str.size() - str.find_last_of(delimiter)) == delimiter.size())
+		return (true);
+	return (false);
+}
+
+std::string get_delimiter(const std::string& command) {
+	if (command.find("\r\n") != std::string::npos)
+		return ("\r\n");
+	else if (command.find('\n') != std::string::npos)
+		return ("\n");
+	else
+		return ("");
+}
+
+// Counts instances of substr in str.
+int count_delimiters(const std::string& str, const std::string& word) {
+	size_t j = 0, k = 0, count = 0;
+	while (j < str.size()) {
+		if (word[k] == str[j]) {
+			j++;
+			k++;
+			if (k == word.size()) {
+				count++;
+				k = 0;
+			}
+		}
+		else
+			k = 0;
+	}
+	return (count);
+}

@@ -32,7 +32,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"NICK", [&]() -> int {
 				if (args.size() != 2)
 					throw std::runtime_error(ERR_NONICKNAMEGIVEN(client.get_hostname()));
-				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
+				if (!client.has_valid_password()) {
 					client.append_to_messages(ERR_PASSWDMISMATCH(client.get_nickname()));
 					client.mark_for_disconnection(":Incorrect Password");
 					return (false);
@@ -52,7 +52,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"PASS", [&]() -> int {
 				if (args.size() != 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
-				if (client.is_registered()) // TODO: Determine if this is needed.
+				if (client.is_registered())
 					throw std::runtime_error(ERR_ALREADYREGISTERED(client.get_nickname()));
 				std::cout << "Password set: "<< args[1] << std::endl;
 				if (args[1] != password) {
@@ -68,7 +68,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 
 		{
 			"USER", [&]() -> int {
-				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
+				if (client.has_valid_password() == false) {
 					client.mark_for_disconnection(":Incorrect Password");
 					return (false);
 				}
@@ -79,7 +79,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		},
 
 		{
-			"TOPIC", [&]() -> int { // FIXME: Implement topic changing.
+			"TOPIC", [&]() -> int {
 				if (args.size() < 2)
 					throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
 				Channel& channel = find_channel(client.get_nickname(), args[1]);
@@ -95,11 +95,11 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					channel.set_topic("");
 				if (channel.channel_has_topic()){
 					channel.echo_privmsg_to_channel(client.get_socket(), RPL_TOPIC(client.get_nickname(), args[1], channel.get_topic()));
-					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel.get_topic())); // TODO: send to all clients
+					client.append_to_messages(RPL_TOPIC(client.get_nickname(), args[1], channel.get_topic()));
 				}
-				else{
+				else {
 					channel.echo_privmsg_to_channel(client.get_socket(), RPL_NOTOPIC(client.get_nickname(), args[1]));
-					client.append_to_messages(RPL_NOTOPIC(client.get_nickname(), args[1])); // TODO: send to all clients 
+					client.append_to_messages(RPL_NOTOPIC(client.get_nickname(), args[1]));
 				}
 				return (true);
 			},
@@ -107,7 +107,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 
 		{
 			"PING", [&]() -> int {
-				client.append_to_messages(RPL_PING(std::string("localhost"), args[1]));
+				client.append_to_messages(RPL_PING(client.get_servername(), args[1]));
 				return (true);
 			},
 		},
@@ -188,8 +188,10 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 					std::cout << "Client " << client.get_nickname() << " has been added to channel." << std::endl;
 				}
 				else {
-					auto new_channel = channels.insert({args[1], Channel(args[1])}); 
-					channel = new_channel.first; // FIXME: Check if channel was actually inserted (new_channel contains a bool)
+					auto new_channel = channels.insert({args[1], Channel(args[1])});
+					if (new_channel.second == false) // NOTE: This checks if the channel was actually inserted.
+						throw std::runtime_error(ERR_UNKNOWNERROR(client.get_nickname(), args[0], std::string("Failed to create channel.")));
+					channel = new_channel.first;
 					channel->second.add_client_to_channel(client);
 					channel->second.promote_user_to_operator(client.get_socket());
 					std::cout << "Channel successfully created" << std::endl;
@@ -323,6 +325,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				else {
 					if (args[2] == "b")
 						throw std::runtime_error(RPL_ENDOFBANLIST(client.get_nickname(), args[1]));
+					if (!channel.is_client_in_channel(client.get_socket()))
+						throw std::runtime_error(ERR_USERNOTINCHANNEL(client.get_nickname(), client.get_nickname(), args[1]));
 					if (!(channel.is_user_operator(client.get_socket())))
 						throw std::runtime_error(ERR_CHANOPRIVSNEEDED(client.get_nickname(), args[1]));
 					bool state;
@@ -330,8 +334,6 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 						state = true;
 					else if (args[2][0] == '-')
 						state = false;
-					else if (args[2][0] == 'b') 
-						throw std::runtime_error(ERR_ENDOFBANLIST(client.get_nickname(), args[1]));
 					else
 						return (false);
 					if (args[2][1] == 'i') 
@@ -369,7 +371,22 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 						}
 					}
 					else if (args[2][1] == 'l') {
-						;
+						if (state) {
+							if (args.size() < 4)
+								throw std::runtime_error(ERR_NEEDMOREPARAMS(client.get_nickname(), args[0]));
+							try {
+								int user_limit = std::stoi(args[3]);
+								channel.set_user_limit(user_limit);
+							}
+							catch (std::out_of_range &e) {
+								throw std::runtime_error(ERR_INVALIDMODEPARAM(client.get_nickname(), args[1], args[2][1], args[3], std::string("Input out of range.")));
+							}
+							catch(std::invalid_argument &e) {
+								throw std::runtime_error(ERR_INVALIDMODEPARAM(client.get_nickname(), args[1], args[2][1], args[3], std::string("Input invalid.")));
+							}
+						}
+						else
+							channel.remove_user_limit();
 					}
 
 				}
