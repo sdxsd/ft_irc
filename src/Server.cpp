@@ -72,7 +72,6 @@ std::vector<std::string> *Server::read_from_client(Client& client) {
 	if (!commands)
 		return (NULL);
 	if (!last_contains_delimiter(buf_string)) {
-		std::cout << "No delimiter: " << buf_string << std::endl;
 		client.append_to_recv_buffer(commands->back());
 		commands->pop_back();
 	}
