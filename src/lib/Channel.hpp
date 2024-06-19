@@ -19,7 +19,7 @@ class Channel {
 		std::vector<std::string>	messages;
 		// === MODE DATA === //
 		// Pairing of the state of the mode and the data it is associated with.
-		std::pair<bool, std::vector<std::string>>	invite_only; // NOTE: Vector contains invite list.
+		std::pair<bool, std::vector<int>>			invite_only; // NOTE: Vector contains invite list.
 		std::pair<bool, std::string> 				password_protected;
 		std::pair<bool, std::string> 				topic;
 		std::pair<bool, int> 						user_limit;
@@ -48,6 +48,13 @@ class Channel {
 		std::string					get_mode() const;
 		const std::string&			get_topic() const;
 		bool						channel_has_topic();
+		void 						set_channel_limit(const bool state);
+		void 						add_invite_user(const int user);
+		bool 						user_invited(int user);
+		void 						set_channel_topic_state(const bool state);
+		bool 						is_topic_protected(void);
+		bool						is_invite_only(void);
+		bool 						in_invite_list(const int user);
 };
 
 #endif // CHANNEL_HPP

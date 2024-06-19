@@ -101,7 +101,7 @@ void Client::register_client(std::vector<std::string> &args) {
 	if (args.size() < 5)
 		throw std::runtime_error(ERR_NEEDMOREPARAMS(nickname, args[0]));
 	if (args[1].size() > 9)
-		username = args[1].substr(0, 9); // TODO replace with MAX_USERLEN or something.
+		username = args[1].substr(0, 9);
 	else
 		username = args[1];
 	hostname = args[2];

@@ -19,6 +19,14 @@ std::map<int, Client*>& Channel::clients_in_channel() {
 	return (clients);
 }
 
+bool Channel::user_invited(int user){
+	for (auto i : invite_only.second){
+		if (i == user)
+			return (true);
+	}
+	return (false);
+}
+
 const std::vector<int>& Channel::operators_in_channel() {
 	return (operators);
 }
@@ -129,8 +137,41 @@ const std::string& Channel::get_topic() const {
 	return (topic.second);
 }
 
+void Channel::set_channel_limit(const bool state){
+	invite_only.first = state;
+	if (state == false)
+		invite_only.second.clear();
+}
+
+void Channel::add_invite_user(const int user){
+	invite_only.second.push_back(user);
+	//std::cout << "current users: " << std::endl;
+	for (auto i : invite_only.second)
+		std::cout << i << std::endl;
+}
+
 bool Channel::channel_has_topic() {
 	if (topic.second.empty())
 		return (false);
 	return (true);
+}
+
+void Channel::set_channel_topic_state(const bool state){
+		topic.first = state;
+}
+
+bool Channel::is_topic_protected(void){
+	return topic.first;
+}
+
+bool Channel::is_invite_only(void){
+	return invite_only.first;
+}
+
+bool Channel::in_invite_list(const int user){
+	for (auto i : invite_only.second){
+		if (i == user)
+			return true;
+	}
+	return false;
 }

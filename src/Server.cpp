@@ -42,7 +42,7 @@ void Server::accept_new_client() {
 
 	sockfd = accept(server_sockfd, (sockaddr*)&client_addr, &client_address_length);
 	if (sockfd != -1) {
-		std::cout << "Client connected!" << std::endl; // TODO: TEMP
+		std::cout << "Client connected!" << std::endl;
 		poll_sockfds.push_back({sockfd, POLLIN | POLLOUT, 0});
 		clients.insert(std::make_pair(sockfd, Client(sockfd))); // Client ID represented by the file descriptor used to communicate with them
 	}
@@ -58,7 +58,25 @@ std::vector<std::string> *Server::read_from_client(Client& client) {
 		return (NULL);
 	}
 	std::string buf_string = buf;
-	return (split(buf_string, "\r\n"));
+	std::cout << "Message received." << std::endl;
+	if (!client.get_recv_buffer().empty()) {
+		buf_string = (client.get_recv_buffer() + buf_string);
+		client.clear_recv_buffer();
+	}
+	std::string delimiter = get_delimiter(buf_string);
+	if (delimiter.empty()) {
+		std::cout << "No delim" << std::endl;
+		client.append_to_recv_buffer(buf_string);
+		return (NULL);
+	}
+	std::vector<std::string> *commands = split(buf_string, delimiter);
+	if (!commands)
+		return (NULL);
+	if (!last_contains_delimiter(buf_string, delimiter)) {
+		client.append_to_recv_buffer(commands->back());
+		commands->pop_back();
+	}
+	return (commands);
 }
 
 void Server::handle_client(Client& client) {
@@ -83,8 +101,6 @@ void Server::handle_client(Client& client) {
 		delete tokens;
 	}
 	delete lines;
-	// TODO: Need to store incomplete messages in the damn recv buffer, not a problem with IRSSI.
-	// 	client.append_to_recv_buffer(buf_string);
 }
 
 Client &Server::find_user(const std::string& sender_nick, const std::string& nick) {
@@ -132,7 +148,7 @@ void Server::run(void) {
 		exit(1); // TODO: Eventually remove.
 	}
 	std::cout << "Server listening on port: " << port << std::endl;
-	while (true) { // TODO: Main logic (for now)
+	while (true) {
 		int	presult = poll(poll_sockfds.data(), poll_sockfds.size(), -1);
 		if (presult != -1 && presult >= 1) {
 			for (const pollfd& pfd : poll_sockfds) {
