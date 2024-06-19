@@ -49,5 +49,7 @@
 #define ERR_INVITEONLYCHAN(source, channel) "473 " + source + " " + channel + " :Channel is invite only, couldnt join\r\n"
 #define ERR_BANNEDFROMCHAN(source, channel) "474 "  + source + " " + channel + " :You are banned from this server, creep\r\n"
 #define ERR_INVALIDKEY(client, channel) "525 " + client + " " + channel + " :Key is not well-formed\r\n"
+#define ERR_INVALIDMODEPARAM(client, target, mode, param, desc) "696 " + client + " " + target + " " + mode + " " + param + " " + desc + "\r\n"
+#define ERR_UNKNOWNERROR(client, command, desc) "400 " + client + " " + command + " :" + desc + "\r\n"
 
 #endif

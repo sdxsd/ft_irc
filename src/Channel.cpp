@@ -40,6 +40,24 @@ void Channel::remove_client_from_channel(const Client& client) {
 	clients.erase(client.get_socket());
 }
 
+int Channel::get_user_limit() {
+	return (user_limit.second);
+}
+
+void Channel::set_user_limit(int user) {
+	user_limit.first = true;
+	user_limit.second = user;
+}
+
+void Channel::remove_user_limit() {
+	user_limit.first = false;
+	user_limit.second = 0;
+}
+
+bool Channel::user_limit_set() {
+	return (user_limit.first);
+}
+
 void Channel::disable_key() {
 	password_protected.first = false;
 	password_protected.second.clear();
