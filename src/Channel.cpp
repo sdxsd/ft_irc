@@ -48,6 +48,28 @@ void Channel::remove_client_from_channel(const Client& client) {
 	clients.erase(client.get_socket());
 }
 
+void Channel::disable_key() {
+	password_protected.first = false;
+	password_protected.second.clear();
+}
+
+void Channel::enable_key(const std::string& key) {
+	password_protected.first = true;
+	password_protected.second = key;
+}
+
+bool Channel::is_key_required() {
+	return (password_protected.first);
+}
+
+bool Channel::validate_key(const std::string& key) {
+	if (!password_protected.first)
+		return (true);
+	if (key == password_protected.second)
+		return (true);
+	return (false);
+}
+
 std::string Channel::get_mode() const {
 	std::string modestring = "+";
 	if (invite_only.first)
@@ -126,4 +148,12 @@ bool Channel::is_topic_protected(void){
 
 bool Channel::is_invite_only(void){
 	return invite_only.first;
+}
+
+bool Channel::in_invite_list(const int user){
+	for (auto i : invite_only.second){
+		if (i == user)
+			return true;
+	}
+	return false;
 }
