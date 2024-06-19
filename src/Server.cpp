@@ -58,7 +58,6 @@ std::vector<std::string> *Server::read_from_client(Client& client) {
 		return (NULL);
 	}
 	std::string buf_string = buf;
-	std::cout << "Message received." << std::endl;
 	if (!client.get_recv_buffer().empty()) {
 		buf_string = (client.get_recv_buffer() + buf_string);
 		client.clear_recv_buffer();
@@ -72,7 +71,8 @@ std::vector<std::string> *Server::read_from_client(Client& client) {
 	std::vector<std::string> *commands = split(buf_string, delimiter);
 	if (!commands)
 		return (NULL);
-	if (!last_contains_delimiter(buf_string, delimiter)) {
+	if (!last_contains_delimiter(buf_string)) {
+		std::cout << "No delimiter: " << buf_string << std::endl;
 		client.append_to_recv_buffer(commands->back());
 		commands->pop_back();
 	}
@@ -85,7 +85,7 @@ void Server::handle_client(Client& client) {
 		return ;
 	for (auto l : *lines) {
 		std::vector<std::string> *tokens = split(l, " ");
-		std::cout << l << std::endl;
+		std::cout << "From: " << l << std::endl;
 		for (std::string& s : *tokens)
 			s = trimWhitespace(s);
 		try {

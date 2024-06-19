@@ -38,8 +38,8 @@ std::string validate_modestring(const std::string& modestring) {
 	return (invalid_chars);
 }
 
-bool last_contains_delimiter(const std::string& str, const std::string &delimiter) {
-	if ((str.size() - str.find_last_of(delimiter)) == delimiter.size())
+bool last_contains_delimiter(const std::string& str) {
+	if (str[str.size() - 1] == '\n')
 		return (true);
 	return (false);
 }
