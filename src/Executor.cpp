@@ -32,8 +32,8 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 			"NICK", [&]() -> int {
 				if (args.size() != 2)
 					throw std::runtime_error(ERR_NONICKNAMEGIVEN(client.get_hostname()));
-				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
-					disconnect_client(client);
+				if (!client.has_valid_password()) { // TODO: Probably need to inform the client the password is wrong...
+					client.mark_for_disconnection("Invalid Password");
 					return (false);
 				}
 				if (args[1][0] == '#' || args[1][0] == '&' || args[1][0] == ':' || args[1][0] == ' ')
@@ -56,8 +56,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 				std::cout << "Password set: "<< args[1] << std::endl;
 				if (args[1] != password) {
 					client.append_to_messages(ERR_PASSWDMISMATCH(client.get_nickname()));
-					client.send_message();
-					disconnect_client(client);
+					client.mark_for_disconnection("Invalid Password");
 					return (false);
 				}
 				else
@@ -69,7 +68,7 @@ int Server::execute_cmd(std::vector<std::string>& args, Client& client) {
 		{
 			"USER", [&]() -> int {
 				if (client.has_valid_password() == false) { // TODO: Probably need to inform the client the password is wrong...
-					disconnect_client(client);
+					client.mark_for_disconnection("Invalid Password");
 					return (false);
 				}
 				client.register_client(args);
